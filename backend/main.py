@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+# Create FastAPI app with root path
 app = FastAPI()
 
 # List of allowed origins
@@ -21,3 +22,7 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Backend działa!"}
+
+@app.get("/users")
+def read_users():
+    return {"message": "Uzytkownicy zwróceni"}
