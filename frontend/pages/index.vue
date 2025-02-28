@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Dodajemy importy z nuxt
 import { useRuntimeConfig, useFetch } from "nuxt/app";
 
 interface BackendResponse {
