@@ -21,19 +21,36 @@ Scrum, 2 weeks sprints
 1. Clone the repository
 2. Install dependencies:
 
-   # Install backend dependencies
+- Install backend dependencies and activate virtual environment
 
-   pip install -r backend/requirements.txt
+```bash
+# For pip users
+python -m venv bakcend/.venv
+source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
+pip install -e backend/
 
-   # Install frontend dependencies
+# For uv users
+uv sync
+source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
+```
 
-   npm install --prefix frontend
+- Install frontend dependencies
+
+```bash
+npm install --prefix frontend
+```
 
 3. Run backend:
-   uvicorn backend.main:app --reload
+
+```bash
+uvicorn backend.main:app --reload
+```
 
 4. Run frontend:
-   npm run dev --prefix frontend
+
+```bash
+npm run dev --prefix frontend
+```
 
 ## API Communication
 
