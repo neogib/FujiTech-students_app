@@ -38,6 +38,7 @@ coverage.xml
 *.cover
 .pytest_cache/
 htmlcov/
+backend.egg-info/
 
 # Build and Output directories
 dist/

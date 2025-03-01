@@ -16,7 +16,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 ```bash
 # Create and activate virtual environment
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
@@ -25,7 +25,7 @@ pip install -e .
 
 ## Running the Project
 
-You can run backend with 'fastapi':
+You can run backend with `fastapi`:
 
 ```bash
 fastapi dev main.py

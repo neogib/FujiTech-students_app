@@ -25,12 +25,12 @@ Scrum, 2 weeks sprints
 
 ```bash
 # For pip users
-python -m venv bakcend/.venv
+python3 -m venv backend/.venv
 source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
 pip install -e backend/
 
 # For uv users
-uv sync
+uv sync --project backend
 source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
 ```
 
@@ -41,6 +41,14 @@ npm install --prefix frontend
 ```
 
 3. Run backend:
+
+You can run backend with `fastapi`:
+
+```bash
+fastapi dev backend/main.py
+```
+
+Or with `uvicorn` directly:
 
 ```bash
 uvicorn backend.main:app --reload
