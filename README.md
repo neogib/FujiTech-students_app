@@ -27,7 +27,7 @@ Scrum, 2 weeks sprints
 # For pip users
 python3 -m venv backend/.venv
 source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
-pip install -e backend/
+pip install backend/
 
 # For uv users
 uv sync --project backend

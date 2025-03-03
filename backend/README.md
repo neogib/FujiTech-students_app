@@ -20,7 +20,7 @@ python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install -e .
+pip install .
 ```
 
 ## Running the Project
