@@ -9,10 +9,4 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8000",
     },
   },
-
-  routeRules: {
-    "/api/**": {
-      proxy: "http://localhost:8000/**",
-    },
-  },
 });
