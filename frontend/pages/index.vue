@@ -1,26 +1,12 @@
 <script setup lang="ts">
-import { useRuntimeConfig, useFetch } from "nuxt/app";
+import { useApi } from "../composables/useApi";
+import { onMounted, watch, watchEffect } from "vue";
 
 interface BackendResponse {
   message: string;
 }
 
-const config = useRuntimeConfig();
-console.log("API Base:", config.public.apiBase);
-const { data, error, pending } = useFetch<BackendResponse>(
-  `${config.public.apiBase}/users`,
-  {
-    onRequest({ request, options }) {
-      console.log("Starting Request:", request);
-    },
-    onResponse({ request, response, options }) {
-      console.log("Response:", response._data);
-    },
-    onRequestError({ request, error, options }) {
-      console.log("Request Error:", error);
-    },
-  }
-);
+const { data, error, pending } = useApi<BackendResponse>("/users");
 </script>
 
 <template>
