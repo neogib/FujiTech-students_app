@@ -7,17 +7,20 @@ interface BackendResponse {
 
 const config = useRuntimeConfig();
 console.log("API Base:", config.public.apiBase);
-const { data, error, pending } = useFetch<BackendResponse>(`/api/users`, {
-  onRequest({ request, options }) {
-    console.log("Starting Request:", request);
-  },
-  onResponse({ request, response, options }) {
-    console.log("Response:", response._data);
-  },
-  onRequestError({ request, error, options }) {
-    console.log("Request Error:", error);
-  },
-});
+const { data, error, pending } = useFetch<BackendResponse>(
+  `${config.public.apiBase}/users`,
+  {
+    onRequest({ request, options }) {
+      console.log("Starting Request:", request);
+    },
+    onResponse({ request, response, options }) {
+      console.log("Response:", response._data);
+    },
+    onRequestError({ request, error, options }) {
+      console.log("Request Error:", error);
+    },
+  }
+);
 </script>
 
 <template>
