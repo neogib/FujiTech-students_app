@@ -17,4 +17,9 @@ const { data, error, status } = useApi<BackendResponse>("/users");
       <p>Odpowiedź z backendu: {{ data?.message }}</p>
     </div>
   </div>
+  <div>
+    <h1>Tu masz przejscie do mapy \/</h1>
+    <NuxtLink to="/map">Przejdź do mapy</NuxtLink>
+  </div>
 </template>
+
