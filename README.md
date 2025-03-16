@@ -62,16 +62,7 @@ npm run dev --prefix frontend
 
 ## API Communication
 
-The frontend communicates with the backend through a proxy configuration:
-
-- Frontend makes requests to `/api/*` endpoints
-- Nuxt dev proxy forwards these requests to the backend
-- Backend handles requests at root endpoints (without `/api` prefix)
-
-Example:
-
-- Frontend request to `/api/` → Backend handles at `/`
-- Frontend runs on: `http://localhost:3000`
-- Backend runs on: `http://localhost:8000`
+The frontend now communicates directly with the backend using a custom composable that wraps Nuxt’s useFetch().
+This composable handles API requests without relying on a proxy, sending requests directly to the backend endpoints.
 
 > **Important:** Backend must be running before starting the frontend to ensure proper API communication.
