@@ -37,7 +37,7 @@ source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
 - Install frontend dependencies (use pnpm)
 
 ```bash
-pnpm install --dir frontend
+pnpm --dir frontend install
 ```
 
 3. Run backend:
@@ -57,7 +57,7 @@ uvicorn backend.main:app --reload
 4. Run frontend:
 
 ```bash
-pnpm dev --dir frontend
+pnpm --dir frontend dev
 ```
 
 ## API Communication
