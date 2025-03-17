@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 const schools = [
   { name: 'Technikum Elektroniczne w Warszawie', lat: 52.2298, lon: 21.0118, type: 'Technikum', value: 10 },
   { name: 'Liceum Ogólnokształcące w Krakowie', lat: 50.0614, lon: 19.9366, type: 'Liceum', value: 45 },
-  { name: 'Zespół Szkół Zawodowych w Gdańsku', lat: 54.352, lon: 18.6466, type: 'Zawodówka', value: 80 }
+  { name: 'Zespół Szkół Zawodowych w Gdańsku', lat: 54.352, lon: 18.6466, type: 'Zawodowka', value: 80 }
 ];
 
 // Funkcja do wyboru ikony na podstawie typu szkoły
@@ -14,17 +14,17 @@ const getIcon = (type: string) => {
   switch (type) {
     case 'Technikum': return '/icons/technik.png'; 
     case 'Liceum': return '/icons/liceum.png';
-    case 'Zawodówka': return '/icons/zawodowka.png';
+    case 'Zawodowka': return '/icons/zawodowka.png';
     default: return '/icons/default.png';
   }
 };
 
 // Funkcja do obliczenia odcienia na podstawie wartości (0-100)
 const getHueRotation = (value: number) => {
-  if (value <= 25) return 0; // Czerwony
-  if (value <= 50) return 30; // Pomarańczowy
-  if (value <= 75) return 60; // Żółty
-  return 120; // Zielony
+  if (value <= 25) return 0; 
+  if (value <= 50) return 30; 
+  if (value <= 75) return 60; 
+  return 120; 
 };
 
 onMounted(() => {
