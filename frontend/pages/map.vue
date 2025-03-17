@@ -4,27 +4,38 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 const schools = [
-  { name: 'Liceum Ogólnokształcące w Warszawie', lat: 52.2298, lon: 21.0118, value: 0.1 },
-  { name: 'Technikum w Krakowie', lat: 50.0614, lon: 19.9366, value: 0.4 },
-  { name: 'Zespół Szkół w Gdańsku', lat: 54.352, lon: 18.6466, value: 0.75 }
+  { name: 'Technikum Elektroniczne w Warszawie', lat: 52.2298, lon: 21.0118, type: 'Technikum', value: 10 },
+  { name: 'Liceum Ogólnokształcące w Krakowie', lat: 50.0614, lon: 19.9366, type: 'Liceum', value: 45 },
+  { name: 'Zespół Szkół Zawodowych w Gdańsku', lat: 54.352, lon: 18.6466, type: 'Zawodówka', value: 80 }
 ];
 
-const getMarkerColor = (value: number) => {
-  if (value <= 0.2) return 'red';
-  if (value <= 0.5) return 'orange';
-  if (value <= 0.86) return 'yellow';
-  return 'green';
+// Funkcja do wyboru ikony na podstawie typu szkoły
+const getIcon = (type: string) => {
+  switch (type) {
+    case 'Technikum': return '/icons/technik.png'; 
+    case 'Liceum': return '/icons/liceum.png';
+    case 'Zawodówka': return '/icons/zawodowka.png';
+    default: return '/icons/default.png';
+  }
+};
+
+// Funkcja do obliczenia odcienia na podstawie wartości (0-100)
+const getHueRotation = (value: number) => {
+  if (value <= 25) return 0; // Czerwony
+  if (value <= 50) return 30; // Pomarańczowy
+  if (value <= 75) return 60; // Żółty
+  return 120; // Zielony
 };
 
 onMounted(() => {
   const map = new maplibregl.Map({
     container: 'map',
-    style: 'https://api.maptiler.com/maps/streets/style.json?key=abmn79oKJ4AUDOofUSpi', // Zamień na własny klucz MapTiler
+    style: 'https://tiles.openfreemap.org/styles/liberty',
     center: [21.0118, 52.2298],
     zoom: 7,
     maxBounds: [
-      [14.0, 49.0], // Południowo-zachodni narożnik Polski
-      [24.2, 55.0]  // Północno-wschodni narożnik Polski
+      [14.0, 49.0],
+      [24.2, 55.0]
     ]
   });
 
@@ -32,11 +43,18 @@ onMounted(() => {
 
   schools.forEach(school => {
     const el = document.createElement('div');
-    el.className = `custom-marker ${getMarkerColor(school.value)}`;
-    
+    el.className = 'custom-marker';
+    el.style.backgroundImage = `url(${getIcon(school.type)})`;
+    el.style.backgroundSize = 'contain';
+    el.style.width = '40px';
+    el.style.height = '40px';
+
+    // Dynamiczne filtrowanie kolorów ikon
+    el.style.filter = `hue-rotate(${getHueRotation(school.value)}deg)`;
+
     new maplibregl.Marker(el)
       .setLngLat([school.lon, school.lat])
-      .setPopup(new maplibregl.Popup().setText(school.name))
+      .setPopup(new maplibregl.Popup().setText(`${school.name} (Wartość: ${school.value})`))
       .addTo(map);
   });
 });
@@ -44,7 +62,7 @@ onMounted(() => {
 
 <template>
   <div class="map-container">
-    <h1>Mapa OpenStreetMap (MapLibre)</h1>
+    <h1>Mapa OpenStreetMap (MapLibre) - Szkoły</h1>
     <div id="map"></div>
   </div>
 </template>
@@ -68,26 +86,7 @@ onMounted(() => {
 }
 
 .custom-marker {
-  width: 32px;
-  height: 40px;
-  border-radius: 50%;
-  border: 3px solid black;
-}
-
-.red {
-  background-color: red;
-}
-
-.orange {
-  background-color: orange;
-}
-
-.yellow {
-  background-color: yellow;
-}
-
-.green {
-  background-color: green;
+  position: relative;
 }
 
 @media (max-width: 768px) {
