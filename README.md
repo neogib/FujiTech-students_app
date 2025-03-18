@@ -34,10 +34,10 @@ uv sync --project backend
 source backend/.venv/bin/activate  # On Windows: backend\.venv\Scripts\activate
 ```
 
-- Install frontend dependencies
+- Install frontend dependencies (use pnpm)
 
 ```bash
-npm install --prefix frontend
+pnpm --dir frontend install
 ```
 
 3. Run backend:
@@ -57,7 +57,7 @@ uvicorn backend.main:app --reload
 4. Run frontend:
 
 ```bash
-npm run dev --prefix frontend
+pnpm --dir frontend dev
 ```
 
 ## API Communication
