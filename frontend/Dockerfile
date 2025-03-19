@@ -1,23 +1,20 @@
-FROM node:16
+FROM node:20
 
 # Set the working directory for the frontend
-WORKDIR /app
+WORKDIR /app/frontend
 
 # Install pnpm globally
 RUN npm install -g pnpm
 
-# Copy dependency files (package.json and optionally pnpm-lock.yaml)
-COPY frontend/package.json frontend/pnpm-lock.yaml* ./
+# Copy dependency definitions from the current context (./frontend)
+COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies using pnpm
+# Install dependencies (this creates node_modules in the image)
 RUN pnpm install
 
-# Copy all frontend code into the working directory
-COPY frontend/ .
+# Copy the rest of the application source code from the current context
+COPY . .
 
-# Inform Docker that the application will run on port 3000
 EXPOSE 3000
 
-# Run the frontend application
 CMD ["pnpm", "dev"]
-

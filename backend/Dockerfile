@@ -1,15 +1,17 @@
-FROM python:3.9-slim
+FROM python:3.13-slim-bookworm
 
 # Set the working directory inside the container for the backend
 WORKDIR /app/backend
 
-# Copy all backend code into the working directory
+# Copy the entire backend folder (including pyproject.toml, etc.)
 COPY backend/ .
 
-# Upgrade pip, install the 'uv' tool, and synchronize project dependencies using uv
-RUN pip install --upgrade pip && pip install uv && uv sync --project .
+# Upgrade pip and install required tools and dependencies
+RUN pip install --upgrade pip && \
+    pip install uv uvicorn fastapi && \
+    uv sync --project .
 
-# Inform Docker that the application will use port 8000
+# Expose port 8000 for the backend application
 EXPOSE 8000
 
 # Run the application using uvicorn
