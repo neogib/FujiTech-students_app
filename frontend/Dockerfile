@@ -1,22 +1,23 @@
 FROM node:16
 
-# Ustawiamy katalog roboczy dla frontendu
+# Set the working directory for the frontend
 WORKDIR /app
 
-# Instalujemy pnpm globalnie
+# Install pnpm globally
 RUN npm install -g pnpm
 
-# Kopiujemy pliki zależności (package.json oraz ewentualny pnpm-lock.yaml)
+# Copy dependency files (package.json and optionally pnpm-lock.yaml)
 COPY frontend/package.json frontend/pnpm-lock.yaml* ./
 
-# Instalujemy zależności przy pomocy pnpm
+# Install dependencies using pnpm
 RUN pnpm install
 
-# Kopiujemy cały kod frontendu
+# Copy all frontend code into the working directory
 COPY frontend/ .
 
-# Informujemy, że aplikacja będzie działać na porcie 3000
+# Inform Docker that the application will run on port 3000
 EXPOSE 3000
 
-# Uruchamiamy aplikację
+# Run the frontend application
 CMD ["pnpm", "dev"]
+
