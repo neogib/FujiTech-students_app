@@ -1,16 +1,16 @@
 FROM python:3.9-slim
 
-# Ustawiamy katalog roboczy w kontenerze dla backendu
+# Set the working directory inside the container for the backend
 WORKDIR /app/backend
 
-# Kopiujemy cały kod backendu
+# Copy all backend code into the working directory
 COPY backend/ .
 
-# Instalujemy pip (aktualizacja), następnie instalujemy uv i synchronizujemy zależności
+# Upgrade pip, install the 'uv' tool, and synchronize project dependencies using uv
 RUN pip install --upgrade pip && pip install uv && uv sync --project .
 
-# Informujemy, że aplikacja będzie korzystać z portu 8000
+# Inform Docker that the application will use port 8000
 EXPOSE 8000
 
-# Uruchamiamy aplikację przy pomocy uvicorn
+# Run the application using uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
