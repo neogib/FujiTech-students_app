@@ -12,4 +12,7 @@ dependencies = [
 dev = [
     "debugpy>=1.8.12",
     "ruff>=0.9.9",
+    "pytest>=7.0.0"
 ]
+
+uvlock
