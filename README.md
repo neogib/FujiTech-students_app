@@ -83,7 +83,7 @@ docker compose restart frontend
 ### 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-repo-url
+git clone https://github.com/KubaBrambor/FujiTech-students_app.git
 cd FujiTech-students_app
 ```
 
