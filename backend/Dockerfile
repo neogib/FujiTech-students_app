@@ -1,18 +1,21 @@
 FROM python:3.13-slim-bookworm
 
-# Set the working directory inside the container for the backend
+# Set working directory inside container
 WORKDIR /app/backend
 
-# Copy the entire backend folder (including pyproject.toml, etc.)
-COPY backend/ .
+# Copy only files needed for installing dependencies
+COPY pyproject.toml uv.lock* ./
 
-# Upgrade pip and install required tools and dependencies
+# Install dependencies with uv
 RUN pip install --upgrade pip && \
     pip install uv uvicorn fastapi && \
     uv sync --project .
 
-# Expose port 8000 for the backend application
+# Copy the rest of the backend code
+COPY . .
+
+# Expose backend port
 EXPOSE 8000
 
-# Run the application using uvicorn
+# Run backend with autoreload
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
