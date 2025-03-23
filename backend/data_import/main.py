@@ -1,5 +1,7 @@
 import logging
 
+from api_fetcher import SchoolsAPIFetcher
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,8 +17,10 @@ def configure_logging():
 
 def main():
     configure_logging()
-    logger.info("Starting data import")
-    pass
+
+    logger.info("Fetching schools data from API...")
+    api_fetcher = SchoolsAPIFetcher()
+    schools_data = api_fetcher.fetch_all_schools()
 
 
 if __name__ == "__main__":
