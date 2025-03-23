@@ -7,6 +7,24 @@ from config import APISettings
 logger = logging.getLogger(__name__)
 
 
+class HydraResponse:
+    """
+    Facilitate working with Hydra Web API responses
+    """
+
+    def __init__(self, response_json):
+        self.raw = response_json
+
+    @property
+    def items(self):
+        return self.raw.get("hydra:member", [])
+
+    @property
+    def next_page_url(self):
+        view = self.raw.get("hydra:view", {})
+        return view.get("hydra:next")
+
+
 class SchoolsAPIFetcher:
     def __init__(
         self,
@@ -28,7 +46,7 @@ class SchoolsAPIFetcher:
             logging.error(f"API Request failed: {err}")
             raise  # Re-raise the exception
 
-    def fetch_schools(self, page: int = 1) -> dict | None:
+    def fetch_schools(self, page: int = 1) -> HydraResponse | None:
         """
         Fetch schools data from one page
         """
@@ -36,8 +54,9 @@ class SchoolsAPIFetcher:
 
         try:
             data = self.api_request(params)
-            if data.get("hydra:member"):  # hydra:member is a list of schools
-                return data
+            hydra_response = HydraResponse(data)
+            if hydra_response.items:
+                return hydra_response
             return None
         except requests.exceptions.RequestException:
             logging.critical(
@@ -53,18 +72,17 @@ class SchoolsAPIFetcher:
         all_schools = []
 
         while page:
-            reponse_data = self.fetch_schools(page=page)
-            if not reponse_data:  # no schools on this page
+            reponse = self.fetch_schools(page=page)
+            if not reponse:  # no schools on this page
                 continue
 
             # extract schools from reponse
-            schools = reponse_data["hydra:member"]
+            schools = reponse.items
             all_schools.extend(schools)
             logger.info(f"Fetched {len(schools)} schools from page {page}")
 
             # check if there are more pages
-            view = reponse_data["hydra:view"]
-            if view.get("hydra:next"):
+            if reponse.next_page_url:
                 page += 1
             else:
                 page = None
