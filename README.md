@@ -23,7 +23,14 @@ Scrum, 2-week sprints
 
 - Install Docker Desktop before proceeding: [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
-### 2. Running the entire project with Docker
+### 2. Clone the repository:
+
+```bash
+git clone https://github.com/KubaBrambor/FujiTech-students_app.git
+cd FujiTech-students_app
+```
+
+### 3. Running the entire project with Docker
 
 To build and run both frontend and backend services, use:
 
@@ -50,7 +57,7 @@ To remove images and volumes after stopping, run:
 docker compose down --rmi all --volumes
 ```
 
-### 3. Running a single service with Docker
+### Running a single service with Docker
 
 #### Running only the backend:
 
