@@ -29,6 +29,7 @@ name = "backend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "email-validator" },
     { name = "fastapi", extra = ["standard"] },
     { name = "geoalchemy2" },
     { name = "requests" },
@@ -43,6 +44,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "email-validator", specifier = ">=2.2.0" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.10" },
     { name = "geoalchemy2", specifier = ">=0.17.1" },
     { name = "requests", specifier = ">=2.32.3" },
