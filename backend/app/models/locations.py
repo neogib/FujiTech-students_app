@@ -1,6 +1,9 @@
+from typing import TYPE_CHECKING
+
 from sqlmodel import Field, Relationship, SQLModel
 
-from .schools import Szkoly
+if TYPE_CHECKING:
+    from .schools import Szkoly
 
 
 class WojewodztwaBase(SQLModel):
@@ -10,7 +13,7 @@ class WojewodztwaBase(SQLModel):
 
 class Wojewodztwa(WojewodztwaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkola: list[Szkoly] = Relationship(back_populates="wojewodztwo")
+    szkola: list["Szkoly"] = Relationship(back_populates="wojewodztwo")
 
 
 class PowiatyBase(SQLModel):
@@ -20,7 +23,7 @@ class PowiatyBase(SQLModel):
 
 class Powiaty(PowiatyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkola: list[Szkoly] = Relationship(back_populates="powiat")
+    szkola: list["Szkoly"] = Relationship(back_populates="powiat")
 
 
 class GminyBase(SQLModel):
@@ -30,7 +33,7 @@ class GminyBase(SQLModel):
 
 class Gminy(GminyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkola: list[Szkoly] = Relationship(back_populates="gmina")
+    szkola: list["Szkoly"] = Relationship(back_populates="gmina")
 
 
 class MiejscowosciBase(SQLModel):
@@ -41,7 +44,7 @@ class MiejscowosciBase(SQLModel):
 
 class Miejscowosci(MiejscowosciBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkola: list[Szkoly] = Relationship(back_populates="miejscowosc")
+    szkola: list["Szkoly"] = Relationship(back_populates="miejscowosc")
 
 
 class UliceBase(SQLModel):
@@ -51,4 +54,4 @@ class UliceBase(SQLModel):
 
 class Ulice(UliceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkola: list[Szkoly] = Relationship(back_populates="ulica")
+    szkola: list["Szkoly"] = Relationship(back_populates="ulica")

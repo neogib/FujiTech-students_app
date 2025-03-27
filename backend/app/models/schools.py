@@ -1,6 +1,5 @@
-from geoalchemy2 import Geometry
 from pydantic import EmailStr
-from sqlmodel import Column, Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 from .locations import Gminy, Miejscowosci, Powiaty, Ulice, Wojewodztwa
 
@@ -13,9 +12,8 @@ class SzkolyBase(SQLModel):
     nazwa: str = Field(index=True, max_length=150)
     dyrektor_imie: str | None = Field(default=None, max_length=50)
     dyrektor_nazwisko: str | None = Field(default=None, max_length=50)
-    geolokalizacja: Geometry = Field(
-        sa_column=Column(Geometry(geometry_type="POINT", srid=4326))
-    )
+    geolokalizacja_latitude: float
+    geolokalizacja_longitude: float
     numer_budynku: int
     telefon: str | None = Field(
         default=None,

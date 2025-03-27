@@ -1,7 +1,8 @@
 import logging
 
 from ..app.core.database import create_db_and_tables
-from .api_fetcher import SchoolsAPIFetcher
+
+# from .api_fetcher import SchoolsAPIFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +20,11 @@ def configure_logging():
 def main():
     configure_logging()
 
-    logger.info("Fetching schools data from API...")
+    # logger.info("Fetching schools data from API...")
     # api_fetcher = SchoolsAPIFetcher()
     # schools_data = api_fetcher.fetch_all_schools()
 
+    logger.info("Creating database and tables...")
     create_db_and_tables()
 
 
