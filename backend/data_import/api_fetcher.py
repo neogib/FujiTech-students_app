@@ -2,7 +2,8 @@ import logging
 import sys
 
 import requests
-from config import APISettings
+
+from .config import APISettings
 
 logger = logging.getLogger(__name__)
 
