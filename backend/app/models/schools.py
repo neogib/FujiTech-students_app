@@ -4,6 +4,51 @@ from sqlmodel import Field, Relationship, SQLModel
 from .locations import Gminy, Miejscowosci, Powiaty, Ulice, Wojewodztwa
 
 
+class TypySzkolBase(SQLModel):
+    id: int | None = Field(default=None, primary_key=True)
+    nazwa: str = Field(index=True)
+
+
+class TypySzkol(TypySzkolBase, table=True):
+    __tablename__: str = "typy_szkol"  # type: ignore
+
+    szkoly: list["Szkoly"] = Relationship(back_populates="typ")
+
+
+class StatusPublicznoprawnyBase(SQLModel):
+    id: int = Field(default=None, primary_key=True)
+    nazwa: str = Field(index=True)
+
+
+class StatusPublicznoprawny(StatusPublicznoprawnyBase, table=True):
+    __tablename__: str = "status_publicznoprawny"  # type: ignore
+
+    szkoly: list["Szkoly"] = Relationship(back_populates="status")
+
+
+# link table to connect EtapyEdukacji and Szkoly
+class SzkolyEtapyLink(SQLModel, table=True):
+    etap_id: int | None = Field(
+        default=None, foreign_key="etapy_edukacji.id", primary_key=True
+    )
+    szkola_id: int | None = Field(
+        default=None, foreign_key="szkoly.id", primary_key=True
+    )
+
+
+class EtapyEdukacjiBase(SQLModel):
+    nazwa: str = Field(index=True)
+    id: int | None = Field(default=None, primary_key=True)
+
+
+class EtapyEdukacji(EtapyEdukacjiBase, table=True):
+    __tablename__: str = "etapy_edukacji"  # type: ignore
+
+    szkoly: list["Szkoly"] = Relationship(
+        back_populates="etapy", link_model=SzkolyEtapyLink
+    )
+
+
 class SzkolyBase(SQLModel):
     numer_rspo: int = Field(unique=True, index=True)
     nip: str
@@ -26,6 +71,8 @@ class SzkolyBase(SQLModel):
     strona_internetowa: str | None = Field(default=None, max_length=254)
 
     # Foreign keys
+    typ_id: int | None = Field(default=None, foreign_key="typy_szkol.id")
+    status_id: int | None = Field(default=None, foreign_key="status_publicznoprawny.id")
     wojewodztwo_id: int | None = Field(default=None, foreign_key="wojewodztwa.id")
     powiat_id: int | None = Field(default=None, foreign_key="powiaty.id")
     gmina_id: int | None = Field(default=None, foreign_key="gminy.id")
@@ -36,9 +83,16 @@ class SzkolyBase(SQLModel):
 class Szkoly(SzkolyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    # Relationships
+    # Relationships - many-to-one
+    typ: TypySzkol | None = Relationship(back_populates="szkoly")
+    status: StatusPublicznoprawny | None = Relationship(back_populates="szkoly")
     wojewodztwo: Wojewodztwa | None = Relationship(back_populates="szkola")
     powiat: Powiaty | None = Relationship(back_populates="szkola")
     gmina: Gminy | None = Relationship(back_populates="szkola")
     miejscowosc: Miejscowosci | None = Relationship(back_populates="szkola")
     ulica: Ulice | None = Relationship(back_populates="szkola")
+
+    # Relationships - many-to-many
+    etapy: list[EtapyEdukacji] = Relationship(
+        back_populates="szkoly", link_model=SzkolyEtapyLink
+    )

@@ -1,6 +1,6 @@
 from sqlmodel import Session, SQLModel, create_engine
 
-from .. import models  # noqa: F401
+from ..models import schools, locations  # noqa: F401
 from .config import settings
 
 # DATABASE_URI is of type PostgresDsn, that's why we need get_connection_string method
