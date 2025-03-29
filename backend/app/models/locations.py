@@ -14,20 +14,18 @@ class WojewodztwaBase(SQLModel):
 class Wojewodztwa(WojewodztwaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    szkola: list["Szkoly"] = Relationship(back_populates="wojewodztwo")
     powiaty: list["Powiaty"] = Relationship(back_populates="wojewodztwo")
 
 
 class PowiatyBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True)
-    wojewodztwo_id: int = Field(foreign_key="wojewodztwa.id")
+    wojewodztwo_id: int | None = Field(default=None, foreign_key="wojewodztwa.id")
 
 
 class Powiaty(PowiatyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    szkola: list["Szkoly"] = Relationship(back_populates="powiat")
     wojewodztwo: Wojewodztwa = Relationship(back_populates="powiaty")
     gminy: list["Gminy"] = Relationship(back_populates="powiat")
 
@@ -35,13 +33,12 @@ class Powiaty(PowiatyBase, table=True):
 class GminyBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True)
-    powiat_id: int = Field(foreign_key="powiaty.id")
+    powiat_id: int | None = Field(default=None, foreign_key="powiaty.id")
 
 
 class Gminy(GminyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    szkola: list["Szkoly"] = Relationship(back_populates="gmina")
     powiat: Powiaty = Relationship(back_populates="gminy")
     miejscowosci: list["Miejscowosci"] = Relationship(back_populates="gmina")
 
@@ -49,13 +46,13 @@ class Gminy(GminyBase, table=True):
 class MiejscowosciBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True)
-    gmina_id: int = Field(foreign_key="gminy.id")
+    gmina_id: int | None = Field(default=None, foreign_key="gminy.id")
 
 
 class Miejscowosci(MiejscowosciBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    szkola: list["Szkoly"] = Relationship(back_populates="miejscowosc")
+    szkoly: list["Szkoly"] = Relationship(back_populates="miejscowosc")
     gmina: Gminy = Relationship(back_populates="miejscowosci")
 
 
@@ -66,4 +63,4 @@ class UliceBase(SQLModel):
 
 class Ulice(UliceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkola: list["Szkoly"] = Relationship(back_populates="ulica")
+    szkoly: list["Szkoly"] = Relationship(back_populates="ulica")

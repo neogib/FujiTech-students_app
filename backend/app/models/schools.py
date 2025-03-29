@@ -52,14 +52,14 @@ class EtapyEdukacji(EtapyEdukacjiBase, table=True):
 class SzkolyBase(SQLModel):
     numer_rspo: int = Field(unique=True, index=True)
     nip: str | None = Field(default=None, max_length=10)
-    regon: str = Field(max_length=9)
+    regon: str | None = Field(default=None, max_length=9)
     liczba_uczniow: int | None = Field(default=None)
     nazwa: str = Field(index=True, max_length=150)
     dyrektor_imie: str | None = Field(default=None, max_length=50)
     dyrektor_nazwisko: str | None = Field(default=None, max_length=50)
     geolokalizacja_latitude: float
     geolokalizacja_longitude: float
-    kod_pocztowy: str = Field(max_length=6)
+    kod_pocztowy: str | None = Field(default=None, max_length=6)
     numer_budynku: str | None = Field(default=None, max_length=10)
     numer_lokalu: str | None = Field(default=None, max_length=10)
     telefon: str | None = Field(
@@ -85,8 +85,8 @@ class Szkoly(SzkolyBase, table=True):
     # Relationships - many-to-one
     typ: TypySzkol | None = Relationship(back_populates="szkoly")
     status: StatusPublicznoprawny | None = Relationship(back_populates="szkoly")
-    miejscowosc: Miejscowosci | None = Relationship(back_populates="szkola")
-    ulica: Ulice | None = Relationship(back_populates="szkola")
+    miejscowosc: Miejscowosci | None = Relationship(back_populates="szkoly")
+    ulica: Ulice | None = Relationship(back_populates="szkoly")
 
     # Relationships - many-to-many
     etapy: list[EtapyEdukacji] = Relationship(

@@ -1,10 +1,9 @@
 from sqlmodel import Session, SQLModel, create_engine
 
-from ..models import locations, schools  # noqa: F401
 from .config import settings
 
 # DATABASE_URI is of type PostgresDsn, that's why we need get_connection_string method
-engine = create_engine(settings.get_connection_string())
+engine = create_engine(settings.get_connection_string(), echo=True)
 
 
 def create_db_and_tables():
