@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
-from .locations import Gminy, Miejscowosci, Powiaty, Ulice, Wojewodztwa
+from .locations import Miejscowosci, Ulice
 
 
 class TypySzkolBase(SQLModel):
@@ -16,7 +16,7 @@ class TypySzkol(TypySzkolBase, table=True):
 
 
 class StatusPublicznoprawnyBase(SQLModel):
-    id: int = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     nazwa: str = Field(index=True)
 
 
@@ -26,7 +26,7 @@ class StatusPublicznoprawny(StatusPublicznoprawnyBase, table=True):
     szkoly: list["Szkoly"] = Relationship(back_populates="status")
 
 
-# link table to connect EtapyEdukacji and Szkoly
+# link table for connecting EtapyEdukacji and Szkoly
 class SzkolyEtapyLink(SQLModel, table=True):
     etap_id: int | None = Field(
         default=None, foreign_key="etapy_edukacji.id", primary_key=True
@@ -37,8 +37,8 @@ class SzkolyEtapyLink(SQLModel, table=True):
 
 
 class EtapyEdukacjiBase(SQLModel):
-    nazwa: str = Field(index=True)
     id: int | None = Field(default=None, primary_key=True)
+    nazwa: str = Field(index=True)
 
 
 class EtapyEdukacji(EtapyEdukacjiBase, table=True):
@@ -51,15 +51,17 @@ class EtapyEdukacji(EtapyEdukacjiBase, table=True):
 
 class SzkolyBase(SQLModel):
     numer_rspo: int = Field(unique=True, index=True)
-    nip: str
-    regon: str
-    liczba_uczniow: int
+    nip: str | None = Field(default=None, max_length=10)
+    regon: str = Field(max_length=9)
+    liczba_uczniow: int | None = Field(default=None)
     nazwa: str = Field(index=True, max_length=150)
     dyrektor_imie: str | None = Field(default=None, max_length=50)
     dyrektor_nazwisko: str | None = Field(default=None, max_length=50)
     geolokalizacja_latitude: float
     geolokalizacja_longitude: float
-    numer_budynku: int
+    kod_pocztowy: str = Field(max_length=6)
+    numer_budynku: str | None = Field(default=None, max_length=10)
+    numer_lokalu: str | None = Field(default=None, max_length=10)
     telefon: str | None = Field(
         default=None,
         max_length=15,  # E.164 standard allows up to 15 digits
@@ -73,9 +75,6 @@ class SzkolyBase(SQLModel):
     # Foreign keys
     typ_id: int | None = Field(default=None, foreign_key="typy_szkol.id")
     status_id: int | None = Field(default=None, foreign_key="status_publicznoprawny.id")
-    wojewodztwo_id: int | None = Field(default=None, foreign_key="wojewodztwa.id")
-    powiat_id: int | None = Field(default=None, foreign_key="powiaty.id")
-    gmina_id: int | None = Field(default=None, foreign_key="gminy.id")
     miejscowosc_id: int | None = Field(default=None, foreign_key="miejscowosci.id")
     ulica_id: int | None = Field(default=None, foreign_key="ulice.id")
 
@@ -86,9 +85,6 @@ class Szkoly(SzkolyBase, table=True):
     # Relationships - many-to-one
     typ: TypySzkol | None = Relationship(back_populates="szkoly")
     status: StatusPublicznoprawny | None = Relationship(back_populates="szkoly")
-    wojewodztwo: Wojewodztwa | None = Relationship(back_populates="szkola")
-    powiat: Powiaty | None = Relationship(back_populates="szkola")
-    gmina: Gminy | None = Relationship(back_populates="szkola")
     miejscowosc: Miejscowosci | None = Relationship(back_populates="szkola")
     ulica: Ulice | None = Relationship(back_populates="szkola")
 

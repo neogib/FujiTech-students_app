@@ -43,17 +43,20 @@ class Gminy(GminyBase, table=True):
 
     szkola: list["Szkoly"] = Relationship(back_populates="gmina")
     powiat: Powiaty = Relationship(back_populates="gminy")
+    miejscowosci: list["Miejscowosci"] = Relationship(back_populates="gmina")
 
 
 class MiejscowosciBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True)
-    kod_pocztowy: str
+    gmina_id: int = Field(foreign_key="gminy.id")
 
 
 class Miejscowosci(MiejscowosciBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+
     szkola: list["Szkoly"] = Relationship(back_populates="miejscowosc")
+    gmina: Gminy = Relationship(back_populates="miejscowosci")
 
 
 class UliceBase(SQLModel):
