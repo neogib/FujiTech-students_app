@@ -16,7 +16,7 @@ from ..app.models.schools import (
 logger = logging.getLogger(__name__)
 
 
-class DatabaseSeeder:
+class DatabaseDecomposer:
     def __init__(self):
         self.engine = engine
         self.session: Session | None = None  # Using the pipe operator syntax
@@ -172,7 +172,9 @@ class DatabaseSeeder:
         self.etapy_edukacji_cache[nazwa] = etap
         return etap
 
-    def seed_school(self, school_data: dict[str, Any]) -> None:
+    def prune_and_decompose_single_school_data(
+        self, school_data: dict[str, Any]
+    ) -> None:
         session = self._ensure_session()
 
         # Check if school already exists
@@ -263,13 +265,13 @@ class DatabaseSeeder:
 
         logger.info(f"Added school: {new_school.nazwa} (RSPO: {new_school.numer_rspo})")
 
-    def seed_schools(self, schools_data: list[dict[str, Any]]) -> None:
+    def prune_and_decompose_schools(self, schools_data: list[dict[str, Any]]) -> None:
         for school_data in schools_data:
             try:
-                self.seed_school(school_data)
+                self.prune_and_decompose_single_school_data(school_data)
             except Exception as e:
                 logger.error(
-                    f"Error seeding school, RSPO: {school_data.get('numerRspo', 'unknown')}, name: {school_data.get('nazwa', 'unknown')}, error: {e}"
+                    f"Error processing school, RSPO: {school_data.get('numerRspo', 'unknown')}, name: {school_data.get('nazwa', 'unknown')}, error: {e}"
                 )
                 session = self._ensure_session()
                 session.rollback()

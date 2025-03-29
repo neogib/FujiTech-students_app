@@ -2,7 +2,7 @@ import logging
 
 from ..app.core.database import create_db_and_tables
 from .api_fetcher import SchoolsAPIFetcher
-from .db_seeder import DatabaseSeeder
+from .db_decomposer import DatabaseDecomposer
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +27,8 @@ def main():
     schools_data = api_fetcher.fetch_all_schools()
 
     logger.info(f"Seeding {len(schools_data)} schools from API...")
-    with DatabaseSeeder() as seeder:
-        seeder.seed_schools(schools_data)
+    with DatabaseDecomposer() as decomposer:
+        decomposer.prune_and_decompose_schools(schools_data)
     logger.info("Successfully seeded schools")
 
 
