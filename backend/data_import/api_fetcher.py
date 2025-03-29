@@ -1,9 +1,10 @@
 import logging
 import sys
+import time
 
 import requests
 
-from .config import APISettings
+from .config import APISettings, RetrySettings
 
 logger = logging.getLogger(__name__)
 
@@ -35,19 +36,33 @@ class SchoolsAPIFetcher:
         self.base_url = base_url
         self.headers = headers
 
-    def api_request(self, params: dict[str, int]) -> dict:
+    def api_request(self, params: dict[str, int]) -> dict | None:
         """
         Helper to make API requests
         """
-        try:
-            response = requests.get(self.base_url, headers=self.headers, params=params)
-            response.raise_for_status()  # Raises HTTPError for bad status codes
-            return response.json()
-        except requests.exceptions.RequestException as err:
-            logging.error(f"API Request failed: {err}")
-            raise  # Re-raise the exception
+        delay = RetrySettings.INITIAL_DELAY
+        max_retries = RetrySettings.MAX_RETRIES
+        for attempt in range(max_retries + 1):
+            try:
+                response = requests.get(
+                    self.base_url, headers=self.headers, params=params
+                )
+                response.raise_for_status()  # Raises HTTPError for bad status codes
+                return response.json()
+            except requests.exceptions.RequestException as err:
+                logger.error(
+                    f"API Request failed (attempt {attempt + 1}/{max_retries}): {err}"
+                )
+                if attempt < max_retries:
+                    logger.info(f"Retrying in {delay} seconds...")
+                    time.sleep(delay)
+                    delay = min(
+                        delay * 2, RetrySettings.MAX_DELAY
+                    )  # exponential backoff
+                else:
+                    raise  # Re-raise the exception after all retries
 
-    def fetch_schools(self, page: int = 1) -> HydraResponse | None:
+    def fetch_schools(self, page: int = 1) -> HydraResponse:
         """
         Fetch schools data from one page
         """
@@ -56,9 +71,7 @@ class SchoolsAPIFetcher:
         try:
             data = self.api_request(params)
             hydra_response = HydraResponse(data)
-            if hydra_response.items:
-                return hydra_response
-            return None
+            return hydra_response
         except requests.exceptions.RequestException:
             logging.critical(
                 "Fatal error fetching schools data. Terminating program..."
@@ -73,25 +86,25 @@ class SchoolsAPIFetcher:
         all_schools = []
 
         while page:
-            reponse = self.fetch_schools(page=page)
-            if not reponse:  # no schools on this page
-                continue
+            response = self.fetch_schools(page=page)
 
             # extract schools from reponse
-            schools = reponse.items
-            all_schools.extend(schools)
-            logger.info(f"Fetched {len(schools)} schools from page {page}")
-
-            # check if there are more pages
-            if reponse.next_page_url:
-                page += 1
+            if response.items:
+                schools = response.items
+                all_schools.extend(schools)
+                logger.info(f"Fetched {len(schools)} schools from page {page}")
             else:
-                page = None
-                break
+                logging.info(f"No schools found on page {page}")
 
             # check if page limit is reached
-            if APISettings.PAGE_LIMIT and page > APISettings.PAGE_LIMIT:
+            if APISettings.PAGE_LIMIT and page >= APISettings.PAGE_LIMIT:
                 break
+
+            # check if there are more pages
+            if not response or response.next_page_url:
+                page += 1
+            else:  # no more pages
+                page = None
 
         logger.info(f"Finished fetching schools. Total: {len(all_schools)}")
         return all_schools

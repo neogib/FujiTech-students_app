@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class DatabaseDecomposer:
     def __init__(self):
         self.engine = engine
-        self.session: Session | None = None  # Using the pipe operator syntax
+        self.session: Session | None = None
         self.wojewodztwa_cache = {}
         self.powiaty_cache = {}
         self.gminy_cache = {}
