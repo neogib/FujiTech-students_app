@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class WojewodztwaBase(SQLModel):
     nazwa: str = Field(index=True)
-    teryt: str = Field(index=True)
+    teryt: str = Field(index=True, unique=True)
 
 
 class Wojewodztwa(WojewodztwaBase, table=True):
@@ -19,7 +19,7 @@ class Wojewodztwa(WojewodztwaBase, table=True):
 
 class PowiatyBase(SQLModel):
     nazwa: str = Field(index=True)
-    teryt: str = Field(index=True)
+    teryt: str = Field(index=True, unique=True)
     wojewodztwo_id: int | None = Field(default=None, foreign_key="wojewodztwa.id")
 
 
@@ -32,7 +32,7 @@ class Powiaty(PowiatyBase, table=True):
 
 class GminyBase(SQLModel):
     nazwa: str = Field(index=True)
-    teryt: str = Field(index=True)
+    teryt: str = Field(index=True, unique=True)
     powiat_id: int | None = Field(default=None, foreign_key="powiaty.id")
 
 
@@ -45,7 +45,7 @@ class Gminy(GminyBase, table=True):
 
 class MiejscowosciBase(SQLModel):
     nazwa: str = Field(index=True)
-    teryt: str = Field(index=True)
+    teryt: str = Field(index=True, unique=True)
     gmina_id: int | None = Field(default=None, foreign_key="gminy.id")
 
 
@@ -58,7 +58,7 @@ class Miejscowosci(MiejscowosciBase, table=True):
 
 class UliceBase(SQLModel):
     nazwa: str = Field(index=True)
-    teryt: str = Field(index=True)
+    teryt: str = Field(index=True, unique=True)
 
 
 class Ulice(UliceBase, table=True):

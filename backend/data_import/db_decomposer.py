@@ -234,23 +234,26 @@ class DatabaseDecomposer:
         # Create new school
         geolokalizacja = school_data.get("geolokalizacja", {})
 
-        # using get method when parameter can be None, otherwise using [] operator
+        # using get method when parameter can be None, adding or None to assign None if parameter is ""
+        # when parameter is required using [] operator
         new_school = Szkoly(
             numer_rspo=school_data["numerRspo"],
-            nip=school_data.get("nip"),
+            nip=school_data.get("nip") or None,
             regon=school_data["regon"],
-            liczba_uczniow=school_data.get("liczbaUczniow"),
+            liczba_uczniow=school_data.get(
+                "liczbaUczniow"
+            ),  # here no "or None" because I want to leave 0 as a value
             nazwa=school_data["nazwa"],
-            dyrektor_imie=school_data.get("dyrektorImie"),
-            dyrektor_nazwisko=school_data.get("dyrektorNazwisko"),
-            geolokalizacja_latitude=geolokalizacja.get("latitude"),
-            geolokalizacja_longitude=geolokalizacja.get("longitude"),
+            dyrektor_imie=school_data.get("dyrektorImie") or None,
+            dyrektor_nazwisko=school_data.get("dyrektorNazwisko") or None,
+            geolokalizacja_latitude=geolokalizacja["latitude"],
+            geolokalizacja_longitude=geolokalizacja["longitude"],
             kod_pocztowy=school_data["kodPocztowy"],
-            numer_budynku=school_data.get("numerBudynku"),
-            numer_lokalu=school_data.get("numerLokalu"),
-            telefon=school_data.get("telefon"),
-            email=school_data.get("email"),
-            strona_internetowa=school_data.get("stronaInternetowa"),
+            numer_budynku=school_data.get("numerBudynku") or None,
+            numer_lokalu=school_data.get("numerLokalu") or None,
+            telefon=school_data.get("telefon") or None,
+            email=school_data.get("email") or None,
+            strona_internetowa=school_data.get("stronaInternetowa") or None,
             # relationships
             typ=typ,
             status=status,
