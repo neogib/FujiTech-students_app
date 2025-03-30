@@ -54,7 +54,7 @@ class SzkolyBase(SQLModel):
     nip: str | None = Field(default=None, max_length=10)
     regon: str = Field(max_length=9, unique=True)
     liczba_uczniow: int | None = Field(default=None, ge=0)
-    nazwa: str = Field(index=True, max_length=150, unique=True)
+    nazwa: str = Field(index=True, max_length=150)
     dyrektor_imie: str | None = Field(default=None, max_length=50)
     dyrektor_nazwisko: str | None = Field(default=None, max_length=50)
     geolokalizacja_latitude: float

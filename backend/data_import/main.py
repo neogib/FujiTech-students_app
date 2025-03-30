@@ -26,10 +26,10 @@ def main():
     api_fetcher = SchoolsAPIFetcher()
     schools_data = api_fetcher.fetch_all_schools()
 
-    logger.info(f"Seeding {len(schools_data)} schools from API...")
+    logger.info(f"Processing {len(schools_data)} schools from API...")
     with DatabaseDecomposer() as decomposer:
         decomposer.prune_and_decompose_schools(schools_data)
-    logger.info("Successfully seeded schools")
+    logger.info("Successfully pruned and decomposed schools")
 
 
 if __name__ == "__main__":
