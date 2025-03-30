@@ -19,17 +19,17 @@ def configure_logging():
 
 def main():
     configure_logging()
-    logger.info("Creating database and tables...")
+    logger.info("🛠️ Creating database and tables...")
     create_db_and_tables()
 
-    logger.info("Fetching schools data from API...")
+    logger.info("📥 Fetching schools data from API...")
     api_fetcher = SchoolsAPIFetcher()
     schools_data = api_fetcher.fetch_all_schools()
 
-    logger.info(f"Processing {len(schools_data)} schools from API...")
+    logger.info(f"⚡ Processing {len(schools_data)} schools from API...")
     with DatabaseDecomposer() as decomposer:
         decomposer.prune_and_decompose_schools(schools_data)
-    logger.info("Successfully pruned and decomposed schools")
+    logger.info("✅ Successfully pruned and decomposed schools")
 
 
 if __name__ == "__main__":

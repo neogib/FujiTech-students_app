@@ -184,7 +184,7 @@ class DatabaseDecomposer:
 
         if existing_school:
             logger.info(
-                f"School with RSPO {school_data['numerRspo']} already exists. Skipping."
+                f"🔙 School with RSPO {school_data['numerRspo']} already exists. Skipping."
             )
             return
 
@@ -266,7 +266,9 @@ class DatabaseDecomposer:
         session.commit()
         session.refresh(new_school)
 
-        logger.info(f"Added school: {new_school.nazwa} (RSPO: {new_school.numer_rspo})")
+        logger.info(
+            f"💾 Added school: {new_school.nazwa} (RSPO: {new_school.numer_rspo})"
+        )
 
     def prune_and_decompose_schools(self, schools_data: list[dict[str, Any]]) -> None:
         for school_data in schools_data:
@@ -274,7 +276,7 @@ class DatabaseDecomposer:
                 self.prune_and_decompose_single_school_data(school_data)
             except Exception as e:
                 logger.error(
-                    f"Error processing school, RSPO: {school_data.get('numerRspo', 'unknown')}, name: {school_data.get('nazwa', 'unknown')}, error: {e}"
+                    f"📛 Error processing school, RSPO: {school_data.get('numerRspo', 'unknown')}, name: {school_data.get('nazwa', 'unknown')}, error: {e}"
                 )
                 session = self._ensure_session()
                 session.rollback()

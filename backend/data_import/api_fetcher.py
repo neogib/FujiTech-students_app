@@ -51,10 +51,10 @@ class SchoolsAPIFetcher:
                 return response.json()
             except requests.exceptions.RequestException as err:
                 logger.error(
-                    f"API Request failed (attempt {attempt + 1}/{max_retries}): {err}"
+                    f"❌ API Request failed (attempt {attempt + 1}/{max_retries}): {err}"
                 )
                 if attempt < max_retries:
-                    logger.info(f"Retrying in {delay} seconds...")
+                    logger.info(f"⏱️⏱️ Retrying in {delay} seconds...")
                     time.sleep(delay)
                     delay = min(
                         delay * 2, RetrySettings.MAX_DELAY
@@ -74,7 +74,7 @@ class SchoolsAPIFetcher:
             return hydra_response
         except requests.exceptions.RequestException:
             logging.critical(
-                "Fatal error fetching schools data. Terminating program..."
+                "🚫 Fatal error fetching schools data. Terminating program..."
             )
             sys.exit(1)  # Terminate the program with error code if an error occurs
 
@@ -92,9 +92,9 @@ class SchoolsAPIFetcher:
             if response.items:
                 schools = response.items
                 all_schools.extend(schools)
-                logger.info(f"Fetched {len(schools)} schools from page {page}")
+                logger.info(f"📋 Fetched {len(schools)} schools from page {page}")
             else:
-                logging.info(f"No schools found on page {page}")
+                logging.info(f"ℹ️ No schools found on page {page}")
 
             # check if page limit is reached
             if APISettings.PAGE_LIMIT and page >= APISettings.PAGE_LIMIT:
@@ -106,5 +106,5 @@ class SchoolsAPIFetcher:
             else:  # no more pages
                 page = None
 
-        logger.info(f"Finished fetching schools. Total: {len(all_schools)}")
+        logger.info(f"🏁 Finished fetching schools. Total: {len(all_schools)}")
         return all_schools
