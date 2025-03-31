@@ -39,7 +39,7 @@ def main():
             )
 
             if not schools_data:
-                logger.info("ℹ️  No more schools to process")
+                logger.info("🛈 No more schools to process")
                 break
 
             logger.info(
@@ -63,7 +63,7 @@ def main():
 
         except Exception as e:
             logger.error(f"❌ Error processing segment {segment_number}: {e}")
-            logger.error(f"⚠️ Process stopped at page {current_page}")
+            logger.error(f"⚠ Process stopped at page {current_page}")
             logger.error("💡 You can resume the process by starting from this page")
             break
 
