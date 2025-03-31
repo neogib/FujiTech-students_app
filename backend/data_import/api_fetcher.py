@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+from typing import Any
 
 import requests
 
@@ -54,7 +55,7 @@ class SchoolsAPIFetcher:
                     f"❌ API Request failed (attempt {attempt + 1}/{max_retries}): {err}"
                 )
                 if attempt < max_retries:
-                    logger.info(f"⏱️⏱️ Retrying in {delay} seconds...")
+                    logger.info(f"⏱️ Retrying in {delay} seconds...")
                     time.sleep(delay)
                     delay = min(
                         delay * 2, RetrySettings.MAX_DELAY
@@ -62,7 +63,7 @@ class SchoolsAPIFetcher:
                 else:
                     raise  # Re-raise the exception after all retries
 
-    def fetch_schools(self, page: int = 1) -> HydraResponse:
+    def fetch_schools_page(self, page: int = 1) -> HydraResponse:
         """
         Fetch schools data from one page
         """
@@ -78,33 +79,43 @@ class SchoolsAPIFetcher:
             )
             sys.exit(1)  # Terminate the program with error code if an error occurs
 
-    def fetch_all_schools(self) -> list[dict]:
+    def fetch_schools_segment(
+        self, start_page: int, max_schools: int = APISettings.MAX_SCHOOLS_SEGMENT
+    ) -> tuple[list[dict[str, Any]], int | None]:
         """
-        Fetch all schools data by paginating through the API
+        Fetch a segment of schools data, up to max_schools
+        Returns tuple of (schools_list, next_page_number)
         """
-        page = 1
-        all_schools = []
+        schools = []
+        current_page = start_page
 
-        while page:
-            response = self.fetch_schools(page=page)
+        while current_page and len(schools) < max_schools:
+            response = self.fetch_schools_page(page=current_page)
 
-            # extract schools from reponse
+            # extract schools from response
             if response.items:
-                schools = response.items
-                all_schools.extend(schools)
-                logger.info(f"📋 Fetched {len(schools)} schools from page {page}")
+                new_schools = response.items
+                schools.extend(new_schools)
+                logger.info(
+                    f"📋 Fetched {len(new_schools)} schools from page {current_page}"
+                )
             else:
-                logging.info(f"ℹ️ No schools found on page {page}")
+                logger.info(f"ℹ️ No schools found on page {current_page}")
 
             # check if page limit is reached
-            if APISettings.PAGE_LIMIT and page >= APISettings.PAGE_LIMIT:
+            if APISettings.PAGE_LIMIT and current_page >= APISettings.PAGE_LIMIT:
+                current_page = None
                 break
 
-            # check if there are more pages
+            # check if there are more pages:
+            # if no response, simply move to next page
+            # if response, check next_page_url
             if not response or response.next_page_url:
-                page += 1
-            else:  # no more pages
-                page = None
+                current_page += 1
+            else:  # no more pages (there was response but no next_page_url)
+                current_page = None
 
-        logger.info(f"🏁 Finished fetching schools. Total: {len(all_schools)}")
-        return all_schools
+        logger.info(
+            f"🏁 Finished fetching segment. Total schools in segment: {len(schools)}"
+        )
+        return schools, current_page

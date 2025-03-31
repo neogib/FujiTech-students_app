@@ -1,9 +1,11 @@
 class APISettings:
     API_SCHOOLS_URL: str = "https://api-rspo.men.gov.pl/api/placowki/"
     HEADERS: dict[str, str] = {"accept": "application/ld+json"}
+    START_PAGE: int = 1
     PAGE_LIMIT: int | None = (
-        100  # the last page to fetch, later this can be changed or set to None
+        13  # the last page to fetch, later this can be changed or set to None
     )
+    MAX_SCHOOLS_SEGMENT: int = 1000
 
 
 class RetrySettings:
