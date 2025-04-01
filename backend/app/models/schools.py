@@ -10,7 +10,7 @@ class TypySzkolBase(SQLModel):
 
 
 class TypySzkol(TypySzkolBase, table=True):
-    __tablename__: str = "typy_szkol"  # type: ignore
+    __tablename__: str = "typy_szkol"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     szkoly: list["Szkoly"] = Relationship(back_populates="typ")
 
@@ -21,7 +21,7 @@ class StatusPublicznoprawnyBase(SQLModel):
 
 
 class StatusPublicznoprawny(StatusPublicznoprawnyBase, table=True):
-    __tablename__: str = "status_publicznoprawny"  # type: ignore
+    __tablename__: str = "status_publicznoprawny"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     szkoly: list["Szkoly"] = Relationship(back_populates="status")
 
@@ -42,7 +42,7 @@ class EtapyEdukacjiBase(SQLModel):
 
 
 class EtapyEdukacji(EtapyEdukacjiBase, table=True):
-    __tablename__: str = "etapy_edukacji"  # type: ignore
+    __tablename__: str = "etapy_edukacji"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     szkoly: list["Szkoly"] = Relationship(
         back_populates="etapy", link_model=SzkolyEtapyLink
