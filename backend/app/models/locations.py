@@ -17,6 +17,10 @@ class Wojewodztwa(WojewodztwaBase, table=True):
     powiaty: list["Powiaty"] = Relationship(back_populates="wojewodztwo")
 
 
+class WojewodztwaPublic(WojewodztwaBase):
+    id: int
+
+
 class PowiatyBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
@@ -28,6 +32,10 @@ class Powiaty(PowiatyBase, table=True):
 
     wojewodztwo: Wojewodztwa = Relationship(back_populates="powiaty")
     gminy: list["Gminy"] = Relationship(back_populates="powiat")
+
+
+class PowiatyPublic(PowiatyBase):
+    id: int
 
 
 class GminyBase(SQLModel):
@@ -43,6 +51,10 @@ class Gminy(GminyBase, table=True):
     miejscowosci: list["Miejscowosci"] = Relationship(back_populates="gmina")
 
 
+class GminyPublic(GminyBase):
+    id: int
+
+
 class MiejscowosciBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
@@ -56,6 +68,10 @@ class Miejscowosci(MiejscowosciBase, table=True):
     gmina: Gminy = Relationship(back_populates="miejscowosci")
 
 
+class MiejscowosciPublic(MiejscowosciBase):
+    id: int
+
+
 class UliceBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
@@ -64,3 +80,7 @@ class UliceBase(SQLModel):
 class Ulice(UliceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     szkoly: list["Szkoly"] = Relationship(back_populates="ulica")
+
+
+class UlicePublic(UliceBase):
+    id: int
