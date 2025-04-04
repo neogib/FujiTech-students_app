@@ -1,9 +1,8 @@
-import requests
 from pydantic import ConfigDict, EmailStr
 from pydantic.alias_generators import to_camel
 from sqlmodel import Field, Relationship, SQLModel
 
-from .locations import Miejscowosci, Ulice
+from .locations import Miejscowosc, Ulica
 
 
 class GeolocationAPIResponse(SQLModel):
@@ -11,18 +10,16 @@ class GeolocationAPIResponse(SQLModel):
     longitude: float
 
 
-class TypySzkolBase(SQLModel):
+class TypBase(SQLModel):
     nazwa: str = Field(index=True, unique=True)
 
 
-class TypySzkol(TypySzkolBase, table=True):
-    __tablename__: str = "typy_szkol"  # pyright: ignore[reportIncompatibleVariableOverride]
-
+class Typ(TypBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkoly"] = Relationship(back_populates="typ")
+    szkoly: list["Szkola"] = Relationship(back_populates="typ")
 
 
-class TypySzkolPublic(TypySzkolBase):
+class TypPublic(TypBase):
     id: int
 
 
@@ -34,7 +31,7 @@ class StatusPublicznoprawny(StatusPublicznoprawnyBase, table=True):
     __tablename__: str = "status_publicznoprawny"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkoly"] = Relationship(back_populates="status")
+    szkoly: list["Szkola"] = Relationship(back_populates="status_publicznoprawny")
 
 
 class StatusPublicznoprawnyPublic(StatusPublicznoprawnyBase):
@@ -42,38 +39,38 @@ class StatusPublicznoprawnyPublic(StatusPublicznoprawnyBase):
 
 
 # link table for connecting EtapyEdukacji and Szkoly
-class SzkolyEtapyLink(SQLModel, table=True):
+class SzkolaEtapLink(SQLModel, table=True):
     etap_id: int | None = Field(
-        default=None, foreign_key="etapy_edukacji.id", primary_key=True
+        default=None, foreign_key="etap_edukacji.id", primary_key=True
     )
     szkola_id: int | None = Field(
-        default=None, foreign_key="szkoly.id", primary_key=True
+        default=None, foreign_key="szkola.id", primary_key=True
     )
 
 
-class EtapyEdukacjiBase(SQLModel):
+class EtapEdukacjiBase(SQLModel):
     nazwa: str = Field(index=True, unique=True)
 
 
-class EtapyEdukacji(EtapyEdukacjiBase, table=True):
-    __tablename__: str = "etapy_edukacji"  # pyright: ignore[reportIncompatibleVariableOverride]
+class EtapEdukacji(EtapEdukacjiBase, table=True):
+    __tablename__: str = "etap_edukacji"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkoly"] = Relationship(
-        back_populates="etapy", link_model=SzkolyEtapyLink
+    szkoly: list["Szkola"] = Relationship(
+        back_populates="etapy_edukacji", link_model=SzkolaEtapLink
     )
 
 
-class EtapyEdukacjiPublic(EtapyEdukacjiBase):
+class EtapEdukacjiPublic(EtapEdukacjiBase):
     id: int
 
 
-class SzkolyBase(SQLModel):
+class SzkolaBase(SQLModel):
     numer_rspo: int = Field(unique=True, index=True)
     nazwa: str = Field(index=True, max_length=150)
 
 
-class SzkolyExtendedData(SzkolyBase):
+class SzkolaExtendedData(SzkolaBase):
     nip: str | None = Field(default=None, max_length=10)
     regon: str = Field(max_length=9, unique=True)
     liczba_uczniow: int | None = Field(default=None, ge=0)
@@ -104,12 +101,12 @@ def custom_camel(string: str) -> str:
     return result
 
 
-class SzkolyAPIResponse(SzkolyExtendedData):
+class SzkolaAPIResponse(SzkolaExtendedData):
     model_config: ConfigDict = ConfigDict(alias_generator=custom_camel)  # pyright: ignore[reportIncompatibleVariableOverride]
     geolokalizacja: GeolocationAPIResponse
-    typ: TypySzkolBase
+    typ: TypBase
     status_publiczno_prawny: StatusPublicznoprawnyBase
-    etapy_edukacji: list[EtapyEdukacjiBase]
+    etapy_edukacji: list[EtapEdukacjiBase]
     wojewodztwo: str
     wojewodztwo_kod_TERYT: str
     powiat: str
@@ -122,36 +119,34 @@ class SzkolyAPIResponse(SzkolyExtendedData):
     ulica_kod_TERYT: str | None
 
 
-class SzkolyWithKeys(SzkolyExtendedData):
+class SzkolaAllData(SzkolaExtendedData):
     geolokalizacja_latitude: float
     geolokalizacja_longitude: float
     # Foreign keys
-    typ_id: int | None = Field(default=None, foreign_key="typy_szkol.id")
-    status_id: int | None = Field(default=None, foreign_key="status_publicznoprawny.id")
-    miejscowosc_id: int | None = Field(default=None, foreign_key="miejscowosci.id")
-    ulica_id: int | None = Field(default=None, foreign_key="ulice.id")
+    typ_id: int | None = Field(default=None, foreign_key="typ.id")
+    status_publicznoprawny_id: int | None = Field(
+        default=None, foreign_key="status_publicznoprawny.id"
+    )
+    miejscowosc_id: int | None = Field(default=None, foreign_key="miejscowosc.id")
+    ulica_id: int | None = Field(default=None, foreign_key="ulica.id")
 
 
-class SzkolyPublic(SzkolyWithKeys):
+class SzkolaPublic(SzkolaAllData):
     id: int
 
 
-class Szkoly(SzkolyWithKeys, table=True):
+class Szkola(SzkolaAllData, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     # Relationships - many-to-one
-    typ: TypySzkol = Relationship(back_populates="szkoly")
-    status: StatusPublicznoprawny = Relationship(back_populates="szkoly")
-    miejscowosc: Miejscowosci = Relationship(back_populates="szkoly")
-    ulica: Ulice | None = Relationship(back_populates="szkoly")
+    typ: Typ = Relationship(back_populates="szkoly")
+    status_publicznoprawny: StatusPublicznoprawny = Relationship(
+        back_populates="szkoly"
+    )
+    miejscowosc: Miejscowosc = Relationship(back_populates="szkoly")
+    ulica: Ulica | None = Relationship(back_populates="szkoly")
 
     # Relationships - many-to-many
-    etapy: list[EtapyEdukacji] = Relationship(
-        back_populates="szkoly", link_model=SzkolyEtapyLink
+    etapy_edukacji: list[EtapEdukacji] = Relationship(
+        back_populates="szkoly", link_model=SzkolaEtapLink
     )
-
-
-# response = requests.get("https://api-rspo.men.gov.pl/api/placowki/2882").json()
-# model_api = SzkolyAPIResponse(**response)
-# model_extended = SzkolyExtendedData(**model_api.model_dump())
-# print(model_extended)

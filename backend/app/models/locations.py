@@ -3,84 +3,84 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from .schools import Szkoly
+    from .schools import Szkola
 
 
-class WojewodztwaBase(SQLModel):
+class WojewodztwoBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
 
 
-class Wojewodztwa(WojewodztwaBase, table=True):
+class Wojewodztwo(WojewodztwoBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    powiaty: list["Powiaty"] = Relationship(back_populates="wojewodztwo")
+    powiaty: list["Powiat"] = Relationship(back_populates="wojewodztwo")
 
 
-class WojewodztwaPublic(WojewodztwaBase):
+class WojewodztwoPublic(WojewodztwoBase):
     id: int
 
 
-class PowiatyBase(SQLModel):
+class PowiatBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
-    wojewodztwo_id: int | None = Field(default=None, foreign_key="wojewodztwa.id")
+    wojewodztwo_id: int | None = Field(default=None, foreign_key="wojewodztwo.id")
 
 
-class Powiaty(PowiatyBase, table=True):
+class Powiat(PowiatBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    wojewodztwo: Wojewodztwa = Relationship(back_populates="powiaty")
-    gminy: list["Gminy"] = Relationship(back_populates="powiat")
+    wojewodztwo: Wojewodztwo = Relationship(back_populates="powiaty")
+    gminy: list["Gmina"] = Relationship(back_populates="powiat")
 
 
-class PowiatyPublic(PowiatyBase):
+class PowiatPublic(PowiatBase):
     id: int
 
 
-class GminyBase(SQLModel):
+class GminaBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
-    powiat_id: int | None = Field(default=None, foreign_key="powiaty.id")
+    powiat_id: int | None = Field(default=None, foreign_key="powiat.id")
 
 
-class Gminy(GminyBase, table=True):
+class Gmina(GminaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    powiat: Powiaty = Relationship(back_populates="gminy")
-    miejscowosci: list["Miejscowosci"] = Relationship(back_populates="gmina")
+    powiat: Powiat = Relationship(back_populates="gminy")
+    miejscowosci: list["Miejscowosc"] = Relationship(back_populates="gmina")
 
 
-class GminyPublic(GminyBase):
+class GminaPublic(GminaBase):
     id: int
 
 
-class MiejscowosciBase(SQLModel):
+class MiejscowoscBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
-    gmina_id: int | None = Field(default=None, foreign_key="gminy.id")
+    gmina_id: int | None = Field(default=None, foreign_key="gmina.id")
 
 
-class Miejscowosci(MiejscowosciBase, table=True):
+class Miejscowosc(MiejscowoscBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    szkoly: list["Szkoly"] = Relationship(back_populates="miejscowosc")
-    gmina: Gminy = Relationship(back_populates="miejscowosci")
+    gmina: Gmina = Relationship(back_populates="miejscowosci")
+    szkoly: list["Szkola"] = Relationship(back_populates="miejscowosc")
 
 
-class MiejscowosciPublic(MiejscowosciBase):
+class MiejscowoscPublic(MiejscowoscBase):
     id: int
 
 
-class UliceBase(SQLModel):
+class UlicaBase(SQLModel):
     nazwa: str = Field(index=True)
     teryt: str = Field(index=True, unique=True)
 
 
-class Ulice(UliceBase, table=True):
+class Ulica(UlicaBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkoly"] = Relationship(back_populates="ulica")
+    szkoly: list["Szkola"] = Relationship(back_populates="ulica")
 
 
-class UlicePublic(UliceBase):
+class UlicaPublic(UlicaBase):
     id: int

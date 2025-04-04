@@ -1,25 +1,26 @@
 import logging
 from types import TracebackType
+from typing import Self
 
 from pydantic_core import ValidationError
 from sqlalchemy import Engine
 from sqlmodel import Session, select
 
-from .types import SchoolDict
-
 from ..app.core.database import engine
-from ..app.models.locations import Gminy, Miejscowosci, Powiaty, Ulice, Wojewodztwa
+from ..app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
 from ..app.models.schools import (
-    EtapyEdukacji,
-    EtapyEdukacjiBase,
+    EtapEdukacji,
+    EtapEdukacjiBase,
     StatusPublicznoprawny,
     StatusPublicznoprawnyBase,
-    Szkoly,
-    SzkolyAPIResponse,
-    SzkolyEtapyLink,  # noqa: F401
-    TypySzkol,
-    TypySzkolBase,
+    Szkola,
+    SzkolaAPIResponse,
+    SzkolaEtapLink,  # noqa: F401
+    Typ,
+    TypBase,
 )
+from .constants_to_remove import APIResponseKeysToRemove
+from .types import SchoolDict
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +29,16 @@ class DatabaseDecomposer:
     def __init__(self):
         self.engine: Engine = engine
         self.session: Session | None = None
-        self.wojewodztwa_cache: dict[str, Wojewodztwa] = {}
-        self.powiaty_cache: dict[str, Powiaty] = {}
-        self.gminy_cache: dict[str, Gminy] = {}
-        self.miejscowosci_cache: dict[str, Miejscowosci] = {}
-        self.ulice_cache: dict[str, Ulice | None] = {}
-        self.typy_szkol_cache: dict[str, TypySzkol] = {}
-        self.statusy_szkol_cache: dict[str, StatusPublicznoprawny] = {}
-        self.etapy_edukacji_cache: dict[str, EtapyEdukacji] = {}
+        self.wojewodztwa_cache: dict[str, Wojewodztwo] = {}
+        self.powiaty_cache: dict[str, Powiat] = {}
+        self.gminy_cache: dict[str, Gmina] = {}
+        self.miejscowosci_cache: dict[str, Miejscowosc] = {}
+        self.ulice_cache: dict[str, Ulica | None] = {}
+        self.typy_cache: dict[str, Typ] = {}
+        self.statusy_cache: dict[str, StatusPublicznoprawny] = {}
+        self.etapy_edukacji_cache: dict[str, EtapEdukacji] = {}
 
-    def __enter__(self) -> "DatabaseDecomposer":
+    def __enter__(self) -> Self:
         # Create the session when entering the context
         self.session = Session(self.engine)
         return self
@@ -64,7 +65,7 @@ class DatabaseDecomposer:
         return self.session
 
     def _log_missing_required_key(
-        self, school_data: SzkolyAPIResponse, e: Exception, required_key: str
+        self, school_data: SzkolaAPIResponse, e: Exception, required_key: str
     ) -> None:
         """Log an error when a required key is missing"""
         logger.error(
@@ -80,69 +81,69 @@ class DatabaseDecomposer:
         session = self._ensure_session()
         return session.exec(select(model).where(condition)).first()
 
-    def _get_or_create_wojewodztwo(self, nazwa: str, teryt: str) -> Wojewodztwa:
+    def _get_or_create_wojewodztwo(self, nazwa: str, teryt: str) -> Wojewodztwo:
         """Get or create a voivodeship record"""
         cache_key = f"{nazwa}_{teryt}"
         if cache_key in self.wojewodztwa_cache:
             return self.wojewodztwa_cache[cache_key]
 
-        wojewodztwo = self._select_where(Wojewodztwa, Wojewodztwa.teryt == teryt)
+        wojewodztwo = self._select_where(Wojewodztwo, Wojewodztwo.teryt == teryt)
 
         if not wojewodztwo:
-            wojewodztwo = Wojewodztwa(nazwa=nazwa, teryt=teryt)
+            wojewodztwo = Wojewodztwo(nazwa=nazwa, teryt=teryt)
 
         self.wojewodztwa_cache[cache_key] = wojewodztwo
         return wojewodztwo
 
     def _get_or_create_powiat(
-        self, nazwa: str, teryt: str, wojewodztwo: Wojewodztwa
-    ) -> Powiaty:
+        self, nazwa: str, teryt: str, wojewodztwo: Wojewodztwo
+    ) -> Powiat:
         """Get or create a county record"""
         cache_key = f"{nazwa}_{teryt}"
         if cache_key in self.powiaty_cache:
             return self.powiaty_cache[cache_key]
 
-        powiat = self._select_where(Powiaty, Powiaty.teryt == teryt)
+        powiat = self._select_where(Powiat, Powiat.teryt == teryt)
 
         if not powiat:
-            powiat = Powiaty(nazwa=nazwa, teryt=teryt, wojewodztwo=wojewodztwo)
+            powiat = Powiat(nazwa=nazwa, teryt=teryt, wojewodztwo=wojewodztwo)
 
         self.powiaty_cache[cache_key] = powiat
         return powiat
 
-    def _get_or_create_gmina(self, nazwa: str, teryt: str, powiat: Powiaty) -> Gminy:
+    def _get_or_create_gmina(self, nazwa: str, teryt: str, powiat: Powiat) -> Gmina:
         """Get or create a borough record"""
         cache_key = f"{nazwa}_{teryt}"
         if cache_key in self.gminy_cache:
             return self.gminy_cache[cache_key]
 
-        gmina = self._select_where(Gminy, Gminy.teryt == teryt)
+        gmina = self._select_where(Gmina, Gmina.teryt == teryt)
 
         if not gmina:
-            gmina = Gminy(nazwa=nazwa, teryt=teryt, powiat=powiat)
+            gmina = Gmina(nazwa=nazwa, teryt=teryt, powiat=powiat)
 
         self.gminy_cache[cache_key] = gmina
         return gmina
 
     def _get_or_create_miejscowosc(
-        self, nazwa: str, teryt: str, gmina: Gminy
-    ) -> Miejscowosci:
+        self, nazwa: str, teryt: str, gmina: Gmina
+    ) -> Miejscowosc:
         """Get or create a city record"""
         cache_key = f"{nazwa}_{teryt}"
         if cache_key in self.miejscowosci_cache:
             return self.miejscowosci_cache[cache_key]
 
-        miejscowosc = self._select_where(Miejscowosci, Miejscowosci.teryt == teryt)
+        miejscowosc = self._select_where(Miejscowosc, Miejscowosc.teryt == teryt)
 
         if not miejscowosc:
-            miejscowosc = Miejscowosci(nazwa=nazwa, teryt=teryt, gmina=gmina)
+            miejscowosc = Miejscowosc(nazwa=nazwa, teryt=teryt, gmina=gmina)
 
         self.miejscowosci_cache[cache_key] = miejscowosc
         return miejscowosc
 
     def _get_or_create_ulica(
         self, nazwa: str | None, teryt: str | None
-    ) -> Ulice | None:
+    ) -> Ulica | None:
         """Get or create a street record if both name and teryt are provided"""
         if not nazwa or not teryt:
             return None
@@ -151,26 +152,26 @@ class DatabaseDecomposer:
         if cache_key in self.ulice_cache:
             return self.ulice_cache[cache_key]
 
-        ulica = self._select_where(Ulice, Ulice.teryt == teryt)
+        ulica = self._select_where(Ulica, Ulica.teryt == teryt)
 
         if not ulica:
-            ulica = Ulice(nazwa=nazwa, teryt=teryt)
+            ulica = Ulica(nazwa=nazwa, teryt=teryt)
 
         self.ulice_cache[cache_key] = ulica
         return ulica
 
-    def _get_or_create_typ_szkoly(self, typ: TypySzkolBase) -> TypySzkol:
+    def _get_or_create_typ_szkoly(self, typ: TypBase) -> Typ:
         """Get or create a school type record"""
         nazwa = typ.nazwa
-        if nazwa in self.typy_szkol_cache:
-            return self.typy_szkol_cache[nazwa]
+        if nazwa in self.typy_cache:
+            return self.typy_cache[nazwa]
 
-        typ_szkoly = self._select_where(TypySzkol, TypySzkol.nazwa == nazwa)
+        typ_szkoly = self._select_where(Typ, Typ.nazwa == nazwa)
 
         if not typ_szkoly:
-            typ_szkoly = TypySzkol.model_validate(typ)
+            typ_szkoly = Typ.model_validate(typ)
 
-        self.typy_szkol_cache[nazwa] = typ_szkoly
+        self.typy_cache[nazwa] = typ_szkoly
         return typ_szkoly
 
     def _get_or_create_status(
@@ -178,8 +179,8 @@ class DatabaseDecomposer:
     ) -> StatusPublicznoprawny:
         """Get or create a public-legal status record"""
         nazwa = status.nazwa
-        if nazwa in self.statusy_szkol_cache:
-            return self.statusy_szkol_cache[nazwa]
+        if nazwa in self.statusy_cache:
+            return self.statusy_cache[nazwa]
 
         status_szkoly = self._select_where(
             StatusPublicznoprawny, StatusPublicznoprawny.nazwa == nazwa
@@ -188,28 +189,26 @@ class DatabaseDecomposer:
         if not status_szkoly:
             status_szkoly = StatusPublicznoprawny.model_validate(status)
 
-        self.statusy_szkol_cache[nazwa] = status_szkoly
+        self.statusy_cache[nazwa] = status_szkoly
         return status_szkoly
 
-    def _get_or_create_etap_edukacji(
-        self, etap_data: EtapyEdukacjiBase
-    ) -> EtapyEdukacji:
+    def _get_or_create_etap_edukacji(self, etap_data: EtapEdukacjiBase) -> EtapEdukacji:
         """Get or create an education stage record"""
         nazwa = etap_data.nazwa
         if nazwa in self.etapy_edukacji_cache:
             return self.etapy_edukacji_cache[nazwa]
 
-        etap = self._select_where(EtapyEdukacji, EtapyEdukacji.nazwa == nazwa)
+        etap = self._select_where(EtapEdukacji, EtapEdukacji.nazwa == nazwa)
 
         if not etap:
-            etap = EtapyEdukacji.model_validate(etap_data)
+            etap = EtapEdukacji.model_validate(etap_data)
 
         self.etapy_edukacji_cache[nazwa] = etap
         return etap
 
     def _process_location_data(
-        self, school_data: SzkolyAPIResponse
-    ) -> tuple[Miejscowosci, Ulice | None]:
+        self, school_data: SzkolaAPIResponse
+    ) -> tuple[Miejscowosc, Ulica | None]:
         """Process location data from school_data and return miejscowosc and ulica objects"""
         wojewodztwo = self._get_or_create_wojewodztwo(
             nazwa=school_data.wojewodztwo,
@@ -244,18 +243,18 @@ class DatabaseDecomposer:
         return miejscowosc, ulica
 
     def _process_school_type_data(
-        self, school_data: SzkolyAPIResponse
-    ) -> tuple[TypySzkol, StatusPublicznoprawny]:
+        self, school_data: SzkolaAPIResponse
+    ) -> tuple[Typ, StatusPublicznoprawny]:
         """Process school type and status data"""
         typ = self._get_or_create_typ_szkoly(typ=school_data.typ)
         status = self._get_or_create_status(status=school_data.status_publiczno_prawny)
         return typ, status
 
     def _process_education_stages(
-        self, school_data: SzkolyAPIResponse
-    ) -> list[EtapyEdukacji]:
+        self, school_data: SzkolaAPIResponse
+    ) -> list[EtapEdukacji]:
         """Process education stages data"""
-        etapy: list[EtapyEdukacji] = []
+        etapy: list[EtapEdukacji] = []
         for etap_data in school_data.etapy_edukacji:
             etap = self._get_or_create_etap_edukacji(etap_data=etap_data)
             etapy.append(etap)
@@ -263,64 +262,41 @@ class DatabaseDecomposer:
 
     def _validate_required_school_data(
         self, school_data: SchoolDict
-    ) -> SzkolyAPIResponse | None:
+    ) -> SzkolaAPIResponse | None:
         """Validate that all required fields are present in the school data"""
         try:
-            school = SzkolyAPIResponse.model_validate(school_data)
+            school = SzkolaAPIResponse.model_validate(school_data)
             return school
         except ValidationError as e:
-            logger.error(f"❌ Invalid school data: {e}")
+            logger.error(f"""❌ Invalid school data: {e}
+                         School data: {school_data}""")
             return None
-
-    #     required_fields = [
-    #         SchoolKeys.RSPO,
-    #         SchoolKeys.REGON,
-    #         SchoolKeys.NAME,
-    #         SchoolKeys.POSTAL_CODE,
-    #         SchoolKeys.GEOLOCATION,
-    #     ]
-    #
-    #     for field in required_fields:
-    #         if field not in school_data:
-    #             logger.error(
-    #                 f"❌ Missing required field {field} for school: {school_data.get(SchoolKeys.NAME, 'unknown')}"
-    #             )
-    #             return False
-    #
-    #     # Check nested required fields
-    #     geolocation = school_data[SchoolKeys.GEOLOCATION]
-    #     if (
-    #         NestedKeys.GEOLOCATION_LATITUDE not in geolocation
-    #         or NestedKeys.GEOLOCATION_LONGITUDE not in geolocation
-    #     ):
-    #         logger.error(
-    #             f"❌ Invalid geolocation data for school: {school_data.get(SchoolKeys.NAME, 'unknown')}"
-    #         )
-    #         return False
-    #
-    #     return True
 
     def _create_school_object(
         self,
-        school_data: SzkolyAPIResponse,
-        typ: TypySzkol,
+        school_data: SzkolaAPIResponse,
+        typ: Typ,
         status: StatusPublicznoprawny,
-        miejscowosc: Miejscowosci,
-        ulica: Ulice | None,
-        etapy: list[EtapyEdukacji],
-    ) -> Szkoly:
+        miejscowosc: Miejscowosc,
+        ulica: Ulica | None,
+        etapy: list[EtapEdukacji],
+    ) -> Szkola:
         """Create a new school object from validated data"""
         geolokalizacja = school_data.geolokalizacja
 
-        new_school = Szkoly(
-            **school_data.model_dump(),
+        api_school_data = school_data.model_dump()
+        # remove specific columns to prevent multiple values for the same field
+        for column in APIResponseKeysToRemove.ALL:
+            api_school_data.pop(column)
+        new_school = Szkola(
+            **api_school_data,
             geolokalizacja_latitude=geolokalizacja.latitude,
             geolokalizacja_longitude=geolokalizacja.longitude,
             typ=typ,
-            status=status,
+            status_publicznoprawny=status,
             miejscowosc=miejscowosc,
             ulica=ulica,
-            etapy=etapy,
+            etapy_edukacji=etapy,
         )
 
         return new_school
@@ -330,35 +306,35 @@ class DatabaseDecomposer:
         session = self._ensure_session()
 
         # First, validate the required fields using the power of Pydantic
-        schools = self._validate_required_school_data(school_data)
-        if not schools:
+        school = self._validate_required_school_data(school_data)
+        if not school:
             session.rollback()
             return
 
         try:
             # Check if school already exists
             existing_school = self._select_where(
-                Szkoly, Szkoly.numer_rspo == schools.numer_rspo
+                Szkola, Szkola.numer_rspo == school.numer_rspo
             )
 
             if existing_school:
                 logger.info(
-                    f"🔙 School with RSPO {schools.numer_rspo} already exists. Skipping."
+                    f"🔙 School with RSPO {school.numer_rspo} already exists. Skipping."
                 )
                 return
 
             # Process location data
-            miejscowosc, ulica = self._process_location_data(schools)
+            miejscowosc, ulica = self._process_location_data(school)
 
             # Process school type and status
-            typ, status = self._process_school_type_data(schools)
+            typ, status = self._process_school_type_data(school)
 
             # Process education stages
-            etapy = self._process_education_stages(schools)
+            etapy = self._process_education_stages(school)
 
             # Create and save new school
             new_school = self._create_school_object(
-                schools, typ, status, miejscowosc, ulica, etapy
+                school, typ, status, miejscowosc, ulica, etapy
             )
 
             session.add(new_school)
@@ -371,7 +347,7 @@ class DatabaseDecomposer:
 
         except Exception as e:
             logger.error(
-                f"❌ Unexpected error processing school {schools.numer_rspo}: {e}"
+                f"❌ Unexpected error processing school {school.numer_rspo}: {e}"
             )
             session.rollback()
             return
