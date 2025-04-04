@@ -1,5 +1,4 @@
 from pydantic import EmailStr
-from pydantic.alias_generators import to_camel
 from sqlmodel import Field, Relationship, SQLModel
 
 from .locations import Miejscowosc, Ulica
@@ -65,7 +64,7 @@ class SzkolaBase(SQLModel):
     nazwa: str = Field(index=True, max_length=150)
 
 
-class SzkolaExtendedData(SzkolaBase):
+class SzkolaExtendedData(SzkolaBase):  # used in SzkolaAPIResponse
     nip: str | None = Field(default=None, max_length=10)
     regon: str = Field(max_length=9, unique=True)
     liczba_uczniow: int | None = Field(default=None, ge=0)
@@ -83,17 +82,6 @@ class SzkolaExtendedData(SzkolaBase):
         max_length=254,  # RFC 3696 official limit
     )
     strona_internetowa: str | None = Field(default=None, max_length=254)
-
-
-def custom_camel(string: str) -> str:
-    # First use the original to_camel function
-    result = to_camel(string)
-
-    # Then handle the special TERYT case
-    if "Teryt" in result:
-        result = result.replace("Teryt", "TERYT")
-
-    return result
 
 
 class SzkolaAllData(SzkolaExtendedData):
