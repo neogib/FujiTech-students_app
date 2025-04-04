@@ -118,11 +118,13 @@ class SzkolyAPIResponse(SzkolyExtendedData):
     gmina_kod_TERYT: str
     miejscowosc: str
     miejscowosc_kod_TERYT: str
-    ulica: str
-    ulica_kod_TERYT: str
+    ulica: str | None
+    ulica_kod_TERYT: str | None
 
 
 class SzkolyWithKeys(SzkolyExtendedData):
+    geolokalizacja_latitude: float
+    geolokalizacja_longitude: float
     # Foreign keys
     typ_id: int | None = Field(default=None, foreign_key="typy_szkol.id")
     status_id: int | None = Field(default=None, foreign_key="status_publicznoprawny.id")
@@ -147,3 +149,9 @@ class Szkoly(SzkolyWithKeys, table=True):
     etapy: list[EtapyEdukacji] = Relationship(
         back_populates="szkoly", link_model=SzkolyEtapyLink
     )
+
+
+# response = requests.get("https://api-rspo.men.gov.pl/api/placowki/2882").json()
+# model_api = SzkolyAPIResponse(**response)
+# model_extended = SzkolyExtendedData(**model_api.model_dump())
+# print(model_extended)

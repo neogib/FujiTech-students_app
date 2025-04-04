@@ -1,11 +1,11 @@
 import logging
 import sys
 import time
-from typing import Any
 
 import requests
 
 from .config import APISettings, RetrySettings
+from .types import SchoolDict
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ class SchoolsAPIFetcher:
 
     def fetch_schools_segment(
         self, start_page: int, max_schools: int = APISettings.MAX_SCHOOLS_SEGMENT
-    ) -> tuple[list[dict[str, Any]], int | None]:
+    ) -> tuple[list[SchoolDict], int | None]:
         """
         Fetch a segment of schools data, up to max_schools
         Returns tuple of (schools_list, next_page_number)

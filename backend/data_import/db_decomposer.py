@@ -1,20 +1,25 @@
 import logging
 from types import TracebackType
 
+from pydantic_core import ValidationError
 from sqlalchemy import Engine
 from sqlmodel import Session, select
+
+from .types import SchoolDict
 
 from ..app.core.database import engine
 from ..app.models.locations import Gminy, Miejscowosci, Powiaty, Ulice, Wojewodztwa
 from ..app.models.schools import (
     EtapyEdukacji,
+    EtapyEdukacjiBase,
     StatusPublicznoprawny,
+    StatusPublicznoprawnyBase,
     Szkoly,
+    SzkolyAPIResponse,
     SzkolyEtapyLink,  # noqa: F401
     TypySzkol,
+    TypySzkolBase,
 )
-from .types.constants import LocationKeys, NestedKeys, SchoolKeys
-from .types.school_data import SchoolDataDict
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +34,7 @@ class DatabaseDecomposer:
         self.miejscowosci_cache: dict[str, Miejscowosci] = {}
         self.ulice_cache: dict[str, Ulice | None] = {}
         self.typy_szkol_cache: dict[str, TypySzkol] = {}
-        self.statusy_cache: dict[str, StatusPublicznoprawny] = {}
+        self.statusy_szkol_cache: dict[str, StatusPublicznoprawny] = {}
         self.etapy_edukacji_cache: dict[str, EtapyEdukacji] = {}
 
     def __enter__(self) -> "DatabaseDecomposer":
@@ -59,13 +64,13 @@ class DatabaseDecomposer:
         return self.session
 
     def _log_missing_required_key(
-        self, school_data: SchoolDataDict, e: Exception, required_key: str
+        self, school_data: SzkolyAPIResponse, e: Exception, required_key: str
     ) -> None:
         """Log an error when a required key is missing"""
         logger.error(
             f"""❌ Missing required {required_key} data for school:
-                - RSPO: {school_data.get(SchoolKeys.RSPO, "unknown")},
-                - name: {school_data.get(SchoolKeys.NAME, "unknown")}, 
+                - RSPO: {school_data.numer_rspo},
+                - name: {school_data.nazwa}, 
                 - error: {e}"""
         )
         self._ensure_session().rollback()
@@ -154,152 +159,150 @@ class DatabaseDecomposer:
         self.ulice_cache[cache_key] = ulica
         return ulica
 
-    def _get_or_create_typ_szkoly(self, nazwa: str) -> TypySzkol:
+    def _get_or_create_typ_szkoly(self, typ: TypySzkolBase) -> TypySzkol:
         """Get or create a school type record"""
+        nazwa = typ.nazwa
         if nazwa in self.typy_szkol_cache:
             return self.typy_szkol_cache[nazwa]
 
         typ_szkoly = self._select_where(TypySzkol, TypySzkol.nazwa == nazwa)
 
         if not typ_szkoly:
-            typ_szkoly = TypySzkol(nazwa=nazwa)
+            typ_szkoly = TypySzkol.model_validate(typ)
 
         self.typy_szkol_cache[nazwa] = typ_szkoly
         return typ_szkoly
 
-    def _get_or_create_status(self, nazwa: str) -> StatusPublicznoprawny:
+    def _get_or_create_status(
+        self, status: StatusPublicznoprawnyBase
+    ) -> StatusPublicznoprawny:
         """Get or create a public-legal status record"""
-        if nazwa in self.statusy_cache:
-            return self.statusy_cache[nazwa]
+        nazwa = status.nazwa
+        if nazwa in self.statusy_szkol_cache:
+            return self.statusy_szkol_cache[nazwa]
 
-        status = self._select_where(
+        status_szkoly = self._select_where(
             StatusPublicznoprawny, StatusPublicznoprawny.nazwa == nazwa
         )
 
-        if not status:
-            status = StatusPublicznoprawny(nazwa=nazwa)
+        if not status_szkoly:
+            status_szkoly = StatusPublicznoprawny.model_validate(status)
 
-        self.statusy_cache[nazwa] = status
-        return status
+        self.statusy_szkol_cache[nazwa] = status_szkoly
+        return status_szkoly
 
-    def _get_or_create_etap_edukacji(self, nazwa: str) -> EtapyEdukacji:
+    def _get_or_create_etap_edukacji(
+        self, etap_data: EtapyEdukacjiBase
+    ) -> EtapyEdukacji:
         """Get or create an education stage record"""
+        nazwa = etap_data.nazwa
         if nazwa in self.etapy_edukacji_cache:
             return self.etapy_edukacji_cache[nazwa]
 
         etap = self._select_where(EtapyEdukacji, EtapyEdukacji.nazwa == nazwa)
 
         if not etap:
-            etap = EtapyEdukacji(nazwa=nazwa)
+            etap = EtapyEdukacji.model_validate(etap_data)
 
         self.etapy_edukacji_cache[nazwa] = etap
         return etap
 
     def _process_location_data(
-        self, school_data: SchoolDataDict
+        self, school_data: SzkolyAPIResponse
     ) -> tuple[Miejscowosci, Ulice | None]:
         """Process location data from school_data and return miejscowosc and ulica objects"""
-        try:
-            wojewodztwo = self._get_or_create_wojewodztwo(
-                nazwa=school_data[LocationKeys.VOIVODESHIP],
-                teryt=school_data[LocationKeys.VOIVODESHIP_TERYT],
+        wojewodztwo = self._get_or_create_wojewodztwo(
+            nazwa=school_data.wojewodztwo,
+            teryt=school_data.wojewodztwo_kod_TERYT,
+        )
+
+        powiat = self._get_or_create_powiat(
+            nazwa=school_data.powiat,
+            teryt=school_data.powiat_kod_TERYT,
+            wojewodztwo=wojewodztwo,
+        )
+
+        gmina = self._get_or_create_gmina(
+            nazwa=school_data.gmina,
+            teryt=school_data.gmina_kod_TERYT,
+            powiat=powiat,
+        )
+
+        miejscowosc = self._get_or_create_miejscowosc(
+            nazwa=school_data.miejscowosc,
+            teryt=school_data.miejscowosc_kod_TERYT,
+            gmina=gmina,
+        )
+
+        ulica = None
+        if school_data.ulica and school_data.ulica_kod_TERYT:
+            ulica = self._get_or_create_ulica(
+                nazwa=school_data.ulica,
+                teryt=school_data.ulica_kod_TERYT,
             )
 
-            powiat = self._get_or_create_powiat(
-                nazwa=school_data[LocationKeys.COUNTY],
-                teryt=school_data[LocationKeys.COUNTY_TERYT],
-                wojewodztwo=wojewodztwo,
-            )
-
-            gmina = self._get_or_create_gmina(
-                nazwa=school_data[LocationKeys.COMMUNE],
-                teryt=school_data[LocationKeys.COMMUNE_TERYT],
-                powiat=powiat,
-            )
-
-            miejscowosc = self._get_or_create_miejscowosc(
-                nazwa=school_data[LocationKeys.CITY],
-                teryt=school_data[LocationKeys.CITY_TERYT],
-                gmina=gmina,
-            )
-
-            ulica = None
-            if (
-                LocationKeys.STREET in school_data
-                and LocationKeys.STREET_TERYT in school_data
-            ):
-                ulica = self._get_or_create_ulica(
-                    nazwa=school_data.get(LocationKeys.STREET),
-                    teryt=school_data.get(LocationKeys.STREET_TERYT),
-                )
-
-            return miejscowosc, ulica
-        except KeyError as e:
-            raise ValueError(f"Missing location data: {e}")
+        return miejscowosc, ulica
 
     def _process_school_type_data(
-        self, school_data: SchoolDataDict
+        self, school_data: SzkolyAPIResponse
     ) -> tuple[TypySzkol, StatusPublicznoprawny]:
         """Process school type and status data"""
-        try:
-            typ = self._get_or_create_typ_szkoly(
-                nazwa=school_data[SchoolKeys.TYPE][NestedKeys.TYPE_NAME]
-            )
-            status = self._get_or_create_status(
-                nazwa=school_data[SchoolKeys.STATUS][NestedKeys.STATUS_NAME]
-            )
-            return typ, status
-        except KeyError as e:
-            raise ValueError(f"Missing school type or status data: {e}")
+        typ = self._get_or_create_typ_szkoly(typ=school_data.typ)
+        status = self._get_or_create_status(status=school_data.status_publiczno_prawny)
+        return typ, status
 
     def _process_education_stages(
-        self, school_data: SchoolDataDict
+        self, school_data: SzkolyAPIResponse
     ) -> list[EtapyEdukacji]:
         """Process education stages data"""
-        try:
-            etapy: list[EtapyEdukacji] = []
-            for etap_data in school_data[SchoolKeys.EDUCATION_STAGES]:
-                etap = self._get_or_create_etap_edukacji(
-                    nazwa=etap_data[NestedKeys.EDUCATION_STAGE_NAME]
-                )
-                etapy.append(etap)
-            return etapy
-        except KeyError as e:
-            raise ValueError(f"Invalid education stage data: {e}")
+        etapy: list[EtapyEdukacji] = []
+        for etap_data in school_data.etapy_edukacji:
+            etap = self._get_or_create_etap_edukacji(etap_data=etap_data)
+            etapy.append(etap)
+        return etapy
 
-    def _validate_required_school_data(self, school_data: SchoolDataDict) -> bool:
+    def _validate_required_school_data(
+        self, school_data: SchoolDict
+    ) -> SzkolyAPIResponse | None:
         """Validate that all required fields are present in the school data"""
-        required_fields = [
-            SchoolKeys.RSPO,
-            SchoolKeys.REGON,
-            SchoolKeys.NAME,
-            SchoolKeys.POSTAL_CODE,
-            SchoolKeys.GEOLOCATION,
-        ]
+        try:
+            school = SzkolyAPIResponse.model_validate(school_data)
+            return school
+        except ValidationError as e:
+            logger.error(f"❌ Invalid school data: {e}")
+            return None
 
-        for field in required_fields:
-            if field not in school_data:
-                logger.error(
-                    f"❌ Missing required field {field} for school: {school_data.get(SchoolKeys.NAME, 'unknown')}"
-                )
-                return False
-
-        # Check nested required fields
-        geolocation = school_data[SchoolKeys.GEOLOCATION]
-        if (
-            NestedKeys.GEOLOCATION_LATITUDE not in geolocation
-            or NestedKeys.GEOLOCATION_LONGITUDE not in geolocation
-        ):
-            logger.error(
-                f"❌ Invalid geolocation data for school: {school_data.get(SchoolKeys.NAME, 'unknown')}"
-            )
-            return False
-
-        return True
+    #     required_fields = [
+    #         SchoolKeys.RSPO,
+    #         SchoolKeys.REGON,
+    #         SchoolKeys.NAME,
+    #         SchoolKeys.POSTAL_CODE,
+    #         SchoolKeys.GEOLOCATION,
+    #     ]
+    #
+    #     for field in required_fields:
+    #         if field not in school_data:
+    #             logger.error(
+    #                 f"❌ Missing required field {field} for school: {school_data.get(SchoolKeys.NAME, 'unknown')}"
+    #             )
+    #             return False
+    #
+    #     # Check nested required fields
+    #     geolocation = school_data[SchoolKeys.GEOLOCATION]
+    #     if (
+    #         NestedKeys.GEOLOCATION_LATITUDE not in geolocation
+    #         or NestedKeys.GEOLOCATION_LONGITUDE not in geolocation
+    #     ):
+    #         logger.error(
+    #             f"❌ Invalid geolocation data for school: {school_data.get(SchoolKeys.NAME, 'unknown')}"
+    #         )
+    #         return False
+    #
+    #     return True
 
     def _create_school_object(
         self,
-        school_data: SchoolDataDict,
+        school_data: SzkolyAPIResponse,
         typ: TypySzkol,
         status: StatusPublicznoprawny,
         miejscowosc: Miejscowosci,
@@ -307,101 +310,73 @@ class DatabaseDecomposer:
         etapy: list[EtapyEdukacji],
     ) -> Szkoly:
         """Create a new school object from validated data"""
-        try:
-            geolokalizacja = school_data[SchoolKeys.GEOLOCATION]
+        geolokalizacja = school_data.geolokalizacja
 
-            # Create new school with proper None handling for optional fields
-            new_school = Szkoly(
-                numer_rspo=school_data[SchoolKeys.RSPO],
-                nip=school_data.get(SchoolKeys.NIP) or None,
-                regon=school_data[SchoolKeys.REGON],
-                liczba_uczniow=school_data.get(
-                    SchoolKeys.STUDENTS_COUNT
-                ),  # No "or None" to allow 0 value
-                nazwa=school_data[SchoolKeys.NAME],
-                dyrektor_imie=school_data.get(SchoolKeys.DIRECTOR_FIRST_NAME) or None,
-                dyrektor_nazwisko=school_data.get(SchoolKeys.DIRECTOR_LAST_NAME)
-                or None,
-                geolokalizacja_latitude=geolokalizacja[NestedKeys.GEOLOCATION_LATITUDE],
-                geolokalizacja_longitude=geolokalizacja[
-                    NestedKeys.GEOLOCATION_LONGITUDE
-                ],
-                kod_pocztowy=school_data[SchoolKeys.POSTAL_CODE],
-                numer_budynku=school_data.get(SchoolKeys.BUILDING_NUMBER) or None,
-                numer_lokalu=school_data.get(SchoolKeys.APARTMENT_NUMBER) or None,
-                telefon=school_data.get(SchoolKeys.PHONE) or None,
-                email=school_data.get(SchoolKeys.EMAIL) or None,
-                strona_internetowa=school_data.get(SchoolKeys.WEBSITE) or None,
-                # relationships
-                typ=typ,
-                status=status,
-                miejscowosc=miejscowosc,
-                ulica=ulica,
-                etapy=etapy,
-            )
+        new_school = Szkoly(
+            **school_data.model_dump(),
+            geolokalizacja_latitude=geolokalizacja.latitude,
+            geolokalizacja_longitude=geolokalizacja.longitude,
+            typ=typ,
+            status=status,
+            miejscowosc=miejscowosc,
+            ulica=ulica,
+            etapy=etapy,
+        )
 
-            return new_school
-        except KeyError as e:
-            raise ValueError(f"Missing required school data: {e}")
+        return new_school
 
-    def prune_and_decompose_single_school_data(
-        self, school_data: SchoolDataDict
-    ) -> None:
+    def prune_and_decompose_single_school_data(self, school_data: SchoolDict) -> None:
         """Process a single school's data and save to database"""
         session = self._ensure_session()
 
-        # First, validate the minimum required fields
-        if not self._validate_required_school_data(school_data):
+        # First, validate the required fields using the power of Pydantic
+        schools = self._validate_required_school_data(school_data)
+        if not schools:
             session.rollback()
             return
 
         try:
             # Check if school already exists
             existing_school = self._select_where(
-                Szkoly, Szkoly.numer_rspo == school_data[SchoolKeys.RSPO]
+                Szkoly, Szkoly.numer_rspo == schools.numer_rspo
             )
 
             if existing_school:
                 logger.info(
-                    f"🔙 School with RSPO {school_data[SchoolKeys.RSPO]} already exists. Skipping."
+                    f"🔙 School with RSPO {schools.numer_rspo} already exists. Skipping."
                 )
                 return
 
-            try:
-                # Process location data
-                miejscowosc, ulica = self._process_location_data(school_data)
+            # Process location data
+            miejscowosc, ulica = self._process_location_data(schools)
 
-                # Process school type and status
-                typ, status = self._process_school_type_data(school_data)
+            # Process school type and status
+            typ, status = self._process_school_type_data(schools)
 
-                # Process education stages
-                etapy = self._process_education_stages(school_data)
+            # Process education stages
+            etapy = self._process_education_stages(schools)
 
-                # Create and save new school
-                new_school = self._create_school_object(
-                    school_data, typ, status, miejscowosc, ulica, etapy
-                )
+            # Create and save new school
+            new_school = self._create_school_object(
+                schools, typ, status, miejscowosc, ulica, etapy
+            )
 
-                session.add(new_school)
-                session.commit()
-                session.refresh(new_school)
+            session.add(new_school)
+            session.commit()
+            session.refresh(new_school)
 
-                logger.info(
-                    f"💾 Added school: {new_school.nazwa} (RSPO: {new_school.numer_rspo})"
-                )
-
-            except ValueError as e:
-                self._log_missing_required_key(school_data, e, str(e))
-                return
+            logger.info(
+                f"💾 Added school: {new_school.nazwa} (RSPO: {new_school.numer_rspo})"
+            )
 
         except Exception as e:
             logger.error(
-                f"❌ Unexpected error processing school {school_data.get(SchoolKeys.RSPO, 'unknown')}: {e}"
+                f"❌ Unexpected error processing school {schools.numer_rspo}: {e}"
             )
             session.rollback()
             return
 
-    def prune_and_decompose_schools(self, schools_data: list[SchoolDataDict]) -> None:
+    def prune_and_decompose_schools(self, schools_data: list[SchoolDict]) -> None:
         """
         Process a list of schools data
         """
@@ -416,7 +391,7 @@ class DatabaseDecomposer:
             except Exception as e:
                 failed_schools += 1
                 logger.error(
-                    f"📛 Error processing school, RSPO: {school_data.get(SchoolKeys.RSPO, 'unknown')}, name: {school_data.get(SchoolKeys.NAME, 'unknown')}, error: {e}"
+                    f"📛 Error processing school: {school_data.get('numerRspo', 'unknown')}: {e}"
                 )
                 session = self._ensure_session()
                 session.rollback()
