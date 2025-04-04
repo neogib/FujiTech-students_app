@@ -4,8 +4,8 @@ import time
 
 import requests
 
+from .api_types_and_models.types import SchoolDict
 from .config import APISettings, RetrySettings
-from .types import SchoolDict
 
 logger = logging.getLogger(__name__)
 

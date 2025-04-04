@@ -14,13 +14,13 @@ from ..app.models.schools import (
     StatusPublicznoprawny,
     StatusPublicznoprawnyBase,
     Szkola,
-    SzkolaAPIResponse,
     SzkolaEtapLink,  # noqa: F401
     Typ,
     TypBase,
 )
-from .constants_to_remove import APIResponseKeysToRemove
-from .types import SchoolDict
+from .api_types_and_models.constants_to_remove import APIResponseKeysToRemove
+from .api_types_and_models.reponse import SzkolaAPIResponse
+from .api_types_and_models.types import SchoolDict
 
 logger = logging.getLogger(__name__)
 
@@ -63,18 +63,6 @@ class DatabaseDecomposer:
         if self.session is None:
             self.session = Session(self.engine)
         return self.session
-
-    def _log_missing_required_key(
-        self, school_data: SzkolaAPIResponse, e: Exception, required_key: str
-    ) -> None:
-        """Log an error when a required key is missing"""
-        logger.error(
-            f"""❌ Missing required {required_key} data for school:
-                - RSPO: {school_data.numer_rspo},
-                - name: {school_data.nazwa}, 
-                - error: {e}"""
-        )
-        self._ensure_session().rollback()
 
     def _select_where(self, model, condition):
         """Generic method to select a record based on a condition"""
@@ -288,6 +276,7 @@ class DatabaseDecomposer:
         # remove specific columns to prevent multiple values for the same field
         for column in APIResponseKeysToRemove.ALL:
             api_school_data.pop(column)
+
         new_school = Szkola(
             **api_school_data,
             geolokalizacja_latitude=geolokalizacja.latitude,

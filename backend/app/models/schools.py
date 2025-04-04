@@ -1,13 +1,8 @@
-from pydantic import ConfigDict, EmailStr
+from pydantic import EmailStr
 from pydantic.alias_generators import to_camel
 from sqlmodel import Field, Relationship, SQLModel
 
 from .locations import Miejscowosc, Ulica
-
-
-class GeolocationAPIResponse(SQLModel):
-    latitude: float
-    longitude: float
 
 
 class TypBase(SQLModel):
@@ -99,24 +94,6 @@ def custom_camel(string: str) -> str:
         result = result.replace("Teryt", "TERYT")
 
     return result
-
-
-class SzkolaAPIResponse(SzkolaExtendedData):
-    model_config: ConfigDict = ConfigDict(alias_generator=custom_camel)  # pyright: ignore[reportIncompatibleVariableOverride]
-    geolokalizacja: GeolocationAPIResponse
-    typ: TypBase
-    status_publiczno_prawny: StatusPublicznoprawnyBase
-    etapy_edukacji: list[EtapEdukacjiBase]
-    wojewodztwo: str
-    wojewodztwo_kod_TERYT: str
-    powiat: str
-    powiat_kod_TERYT: str
-    gmina: str
-    gmina_kod_TERYT: str
-    miejscowosc: str
-    miejscowosc_kod_TERYT: str
-    ulica: str | None
-    ulica_kod_TERYT: str | None
 
 
 class SzkolaAllData(SzkolaExtendedData):

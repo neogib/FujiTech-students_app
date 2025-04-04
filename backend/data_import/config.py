@@ -3,7 +3,7 @@ class APISettings:
     HEADERS: dict[str, str] = {"accept": "application/ld+json"}
     START_PAGE: int = 1
     PAGE_LIMIT: int | None = (
-        13  # the last page to fetch, later this can be changed or set to None
+        1  # the last page to fetch, later this can be changed or set to None
     )
     MAX_SCHOOLS_SEGMENT: int = 1000
 
