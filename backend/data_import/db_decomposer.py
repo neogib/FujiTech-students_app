@@ -4,7 +4,7 @@ from typing import Self
 
 from pydantic_core import ValidationError
 from sqlalchemy import Engine
-from sqlmodel import Session, select
+from sqlmodel import Session, SQLModel, select
 
 from ..app.core.database import engine
 from ..app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
@@ -64,7 +64,7 @@ class DatabaseDecomposer:
             self.session = Session(self.engine)
         return self.session
 
-    def _select_where(self, model, condition):
+    def _select_where[T: SQLModel](self, model: type[T], condition: bool) -> T | None:
         """Generic method to select a record based on a condition"""
         session = self._ensure_session()
         return session.exec(select(model).where(condition)).first()
@@ -277,12 +277,13 @@ class DatabaseDecomposer:
         for column in APIResponseKeysToRemove.ALL:
             api_school_data.pop(column)
 
+        # all other fields from SzkolaAPIResponse that are not used in Szkola are removed by pydantic
         new_school = Szkola(
-            **api_school_data,
+            **api_school_data,  # pyright: ignore[reportAny]
             geolokalizacja_latitude=geolokalizacja.latitude,
             geolokalizacja_longitude=geolokalizacja.longitude,
             typ=typ,
-            status_publicznoprawny=status,
+            status_publicznoprawny=status,  # we haven't removed status_publicznoprawny from SzkolaAPIResponse because from the API we actually have status_publiczno_prawny which is incorrect form
             miejscowosc=miejscowosc,
             ulica=ulica,
             etapy_edukacji=etapy,
