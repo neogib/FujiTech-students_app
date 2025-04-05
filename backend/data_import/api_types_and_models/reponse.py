@@ -37,15 +37,14 @@ class SzkolaAPIResponse(SzkolaExtendedData):
 
     @model_validator(mode="before")
     @classmethod
-    def empty_str_to_none(cls, data: object) -> SchoolDict:
+    def empty_str_to_none[T](cls, data: T) -> T:
         """Convert empty strings to None for all fields."""
         if not isinstance(data, dict):
             raise ValueError(f"Expected data to be a dictionary, but got {data}")
 
         # Convert empty strings to None for all fields
-        school: SchoolDict = cast(SchoolDict, data)
-        for field_name, field_value in list(school.items()):
+        for field_name, field_value in list(cast(SchoolDict, data).items()):
             if field_value == "":
-                school[field_name] = None
+                data[field_name] = None
 
-        return school
+        return cast(T, data)

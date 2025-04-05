@@ -1,10 +1,11 @@
 import logging
 import sys
 import time
+from typing import cast
 
 import requests
 
-from .api_types_and_models.types import SchoolDict
+from .api_types_and_models.types import APIReponse, SchoolDict
 from .config import APISettings, RetrySettings
 
 logger = logging.getLogger(__name__)
@@ -15,16 +16,16 @@ class HydraResponse:
     Facilitate working with Hydra Web API responses
     """
 
-    def __init__(self, response_json):
-        self.raw = response_json
+    def __init__(self, response_json: APIReponse):
+        self.raw: APIReponse = response_json
 
     @property
-    def items(self):
-        return self.raw.get("hydra:member", [])
+    def items(self) -> list[SchoolDict]:
+        return cast(list[SchoolDict], self.raw.get("hydra:member", []))
 
     @property
-    def next_page_url(self):
-        view = self.raw.get("hydra:view", {})
+    def next_page_url(self) -> str | None:
+        view = cast(dict[str, str], self.raw.get("hydra:view", {}))
         return view.get("hydra:next")
 
 
@@ -34,34 +35,35 @@ class SchoolsAPIFetcher:
         base_url: str = APISettings.API_SCHOOLS_URL,
         headers: dict[str, str] = APISettings.HEADERS,
     ):
-        self.base_url = base_url
-        self.headers = headers
+        self.base_url: str = base_url
+        self.headers: dict[str, str] = headers
 
-    def api_request(self, params: dict[str, int]) -> dict | None:
+    def api_request(self, params: dict[str, int]) -> APIReponse:
         """
         Helper to make API requests
         """
         delay = RetrySettings.INITIAL_DELAY
         max_retries = RetrySettings.MAX_RETRIES
-        for attempt in range(max_retries + 1):
+        for attempt in range(max_retries):
             try:
                 response = requests.get(
                     self.base_url, headers=self.headers, params=params
                 )
                 response.raise_for_status()  # Raises HTTPError for bad status codes
-                return response.json()
+                return cast(APIReponse, response.json())
             except requests.exceptions.RequestException as err:
                 logger.error(
                     f"❌ API Request failed (attempt {attempt + 1}/{max_retries}): {err}"
                 )
-                if attempt < max_retries:
+                if (attempt + 1) < max_retries:
                     logger.info(f"⏱️ Retrying in {delay} seconds...")
                     time.sleep(delay)
                     delay = min(
                         delay * 2, RetrySettings.MAX_DELAY
                     )  # exponential backoff
-                else:
-                    raise  # Re-raise the exception after all retries
+        raise Exception(
+            "API Request failed after all retries"
+        )  # Re-raise the exception after all retries
 
     def fetch_schools_page(self, page: int = 1) -> HydraResponse:
         """
@@ -86,7 +88,7 @@ class SchoolsAPIFetcher:
         Fetch a segment of schools data, up to max_schools
         Returns tuple of (schools_list, next_page_number)
         """
-        schools = []
+        schools: list[SchoolDict] = []
         current_page = start_page
 
         while current_page and len(schools) < max_schools:
