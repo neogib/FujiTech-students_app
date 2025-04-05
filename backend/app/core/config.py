@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import PostgresDsn, TypeAdapter, field_validator
+from pydantic import PostgresDsn, TypeAdapter, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,7 +16,9 @@ class Settings(BaseSettings):
 
     @field_validator("DATABASE_URI", mode="before")
     @classmethod
-    def assemble_db_connection(cls, v: PostgresDsn | str | None, info) -> PostgresDsn:
+    def assemble_db_connection(
+        cls, v: PostgresDsn | str | None, info: ValidationInfo
+    ) -> PostgresDsn:
         # If already a PostgresDsn, return it
         if isinstance(v, PostgresDsn):
             return v
@@ -44,11 +46,8 @@ class Settings(BaseSettings):
             return str(self.DATABASE_URI)
         raise ValueError("Database URI not configured")
 
-    model_config = SettingsConfigDict(
+    model_config: SettingsConfigDict = SettingsConfigDict(  # pyright: ignore[reportIncompatibleVariableOverride]
         env_file=Path(__file__).parent / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
-
-
-settings = Settings()  # type: ignore
