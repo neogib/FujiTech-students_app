@@ -1,9 +1,9 @@
 import logging
 
 from ..app.core.database import create_db_and_tables
-from .api_fetcher import SchoolsAPIFetcher
-from .config import APISettings
-from .db_decomposer import DatabaseDecomposer
+from .api.fetcher import SchoolsAPIFetcher
+from .core.config import APISettings
+from .db.decomposer import DatabaseDecomposer
 
 logger = logging.getLogger(__name__)
 

@@ -5,8 +5,8 @@ from typing import cast
 
 import requests
 
-from .api_types_and_models.types import APIReponse, SchoolDict
-from .config import APISettings, RetrySettings
+from ..core.config import APISettings, RetrySettings
+from .types import APIReponse, SchoolDict
 
 logger = logging.getLogger(__name__)
 

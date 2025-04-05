@@ -6,9 +6,9 @@ from pydantic_core import ValidationError
 from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, select
 
-from ..app.core.database import engine
-from ..app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
-from ..app.models.schools import (
+from ...app.core.database import engine
+from ...app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
+from ...app.models.schools import (
     EtapEdukacji,
     EtapEdukacjiBase,
     StatusPublicznoprawny,
@@ -18,9 +18,9 @@ from ..app.models.schools import (
     Typ,
     TypBase,
 )
-from .api_types_and_models.constants_to_remove import APIResponseKeysToRemove
-from .api_types_and_models.reponse import SzkolaAPIResponse
-from .api_types_and_models.types import SchoolDict
+from ..api.models import SzkolaAPIResponse
+from ..api.types import SchoolDict
+from .excluded_fields import SchoolFieldExclusions
 
 logger = logging.getLogger(__name__)
 
@@ -274,7 +274,7 @@ class DatabaseDecomposer:
 
         api_school_data = school_data.model_dump()
         # remove specific columns to prevent multiple values for the same field
-        for column in APIResponseKeysToRemove.ALL:
+        for column in SchoolFieldExclusions.ALL:
             api_school_data.pop(column)
 
         # all other fields from SzkolaAPIResponse that are not used in Szkola are removed by pydantic
