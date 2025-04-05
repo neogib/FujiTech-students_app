@@ -60,27 +60,25 @@ class EtapEdukacjiPublic(EtapEdukacjiBase):
 
 class SzkolaBase(SQLModel):
     numer_rspo: int = Field(unique=True, index=True)
-    nazwa: str = Field(index=True, max_length=400)
+    nazwa: str = Field(index=True)
 
 
 class SzkolaExtendedData(SzkolaBase):  # used in SzkolaAPIResponse
-    nip: str | None = Field(default=None, max_length=10)
-    regon: str = Field(max_length=14, unique=True)
+    nip: str | None = Field(default=None)
+    regon: str = Field(unique=True)
     liczba_uczniow: int | None = Field(default=None, ge=0)
-    dyrektor_imie: str | None = Field(default=None, max_length=50)
-    dyrektor_nazwisko: str | None = Field(default=None, max_length=50)
-    kod_pocztowy: str = Field(max_length=6)
-    numer_budynku: str | None = Field(default=None, max_length=30)
-    numer_lokalu: str | None = Field(default=None, max_length=25)
+    dyrektor_imie: str | None = Field(default=None)
+    dyrektor_nazwisko: str | None = Field(default=None)
+    kod_pocztowy: str
+    numer_budynku: str | None = Field(default=None)
+    numer_lokalu: str | None = Field(default=None)
     telefon: str | None = Field(
         default=None,
-        max_length=15,  # E.164 standard allows up to 15 digits
     )
     email: str | None = Field(
         default=None,
-        max_length=254,  # RFC 3696 official limit
     )
-    strona_internetowa: str | None = Field(default=None, max_length=254)
+    strona_internetowa: str | None = Field(default=None)
 
 
 class SzkolaAllData(SzkolaExtendedData):
