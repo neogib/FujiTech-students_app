@@ -1,4 +1,3 @@
-from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
 from .locations import Miejscowosc, Ulica
@@ -61,23 +60,23 @@ class EtapEdukacjiPublic(EtapEdukacjiBase):
 
 class SzkolaBase(SQLModel):
     numer_rspo: int = Field(unique=True, index=True)
-    nazwa: str = Field(index=True, max_length=150)
+    nazwa: str = Field(index=True, max_length=400)
 
 
 class SzkolaExtendedData(SzkolaBase):  # used in SzkolaAPIResponse
     nip: str | None = Field(default=None, max_length=10)
-    regon: str = Field(max_length=9, unique=True)
+    regon: str = Field(max_length=14, unique=True)
     liczba_uczniow: int | None = Field(default=None, ge=0)
     dyrektor_imie: str | None = Field(default=None, max_length=50)
     dyrektor_nazwisko: str | None = Field(default=None, max_length=50)
     kod_pocztowy: str = Field(max_length=6)
-    numer_budynku: str | None = Field(default=None, max_length=10)
-    numer_lokalu: str | None = Field(default=None, max_length=10)
+    numer_budynku: str | None = Field(default=None, max_length=30)
+    numer_lokalu: str | None = Field(default=None, max_length=25)
     telefon: str | None = Field(
         default=None,
         max_length=15,  # E.164 standard allows up to 15 digits
     )
-    email: EmailStr | None = Field(
+    email: str | None = Field(
         default=None,
         max_length=254,  # RFC 3696 official limit
     )
