@@ -6,7 +6,7 @@ from typing import cast
 import requests
 
 from ..core.config import APISettings, RetrySettings
-from .types import APIReponse, SchoolDict
+from .types import APIResponse, SchoolDict
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +16,8 @@ class HydraResponse:
     Facilitate working with Hydra Web API responses
     """
 
-    def __init__(self, response_json: APIReponse):
-        self.raw: APIReponse = response_json
+    def __init__(self, response_json: APIResponse):
+        self.raw: APIResponse = response_json
 
     @property
     def items(self) -> list[SchoolDict]:
@@ -38,7 +38,7 @@ class SchoolsAPIFetcher:
         self.base_url: str = base_url
         self.headers: dict[str, str] = headers
 
-    def api_request(self, params: dict[str, int]) -> APIReponse:
+    def api_request(self, params: dict[str, int]) -> APIResponse:
         """
         Helper to make API requests
         """
@@ -50,7 +50,7 @@ class SchoolsAPIFetcher:
                     self.base_url, headers=self.headers, params=params
                 )
                 response.raise_for_status()  # Raises HTTPError for bad status codes
-                return cast(APIReponse, response.json())
+                return cast(APIResponse, response.json())
             except requests.exceptions.RequestException as err:
                 logger.error(
                     f"❌ API Request failed (attempt {attempt + 1}/{max_retries}): {err}"
@@ -109,12 +109,9 @@ class SchoolsAPIFetcher:
                 current_page = None
                 break
 
-            # check if there are more pages:
-            # if no response, simply move to next page
-            # if response, check next_page_url
-            if not response or response.next_page_url:
+            if response.next_page_url:  # check if there are more pages in reponse
                 current_page += 1
-            else:  # no more pages (there was response but no next_page_url)
+            else:  # no more pages - stopping...
                 current_page = None
 
         logger.info(
