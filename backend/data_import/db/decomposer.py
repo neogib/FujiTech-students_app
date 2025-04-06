@@ -259,10 +259,7 @@ class DatabaseDecomposer:
             school = SzkolaAPIResponse.model_validate(school_data)
             return school
         except ValidationError as e:
-            logger.error(
-                f"""❌ Invalid school data: {e}, 
-                    School data: {school_data}"""
-            )
+            logger.error(f"❌ Invalid school data: {e}, School data: {school_data}")
             return None
 
     def _create_school_object(
