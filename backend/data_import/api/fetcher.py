@@ -1,11 +1,11 @@
 import logging
-import sys
 import time
 from typing import cast
 
 import requests
 
 from ..core.config import APISettings, RetrySettings
+from .exceptions import APIRequestException, SchoolsDataException
 from .types import APIResponse, SchoolDict
 
 logger = logging.getLogger(__name__)
@@ -61,9 +61,9 @@ class SchoolsAPIFetcher:
                     delay = min(
                         delay * 2, RetrySettings.MAX_DELAY
                     )  # exponential backoff
-        raise Exception(
-            "API Request failed after all retries"
-        )  # Re-raise the exception after all retries
+        raise APIRequestException(
+            "API Request failed after all retries", attempts=max_retries
+        )  # Raise custom exception after all retries
 
     def fetch_schools_page(self, page: int = 1) -> HydraResponse:
         """
@@ -75,11 +75,9 @@ class SchoolsAPIFetcher:
             data = self.api_request(params)
             hydra_response = HydraResponse(data)
             return hydra_response
-        except requests.exceptions.RequestException:
-            logging.critical(
-                "🚫 Fatal error fetching schools data. Terminating program..."
-            )
-            sys.exit(1)  # Terminate the program with error code if an error occurs
+        except (requests.exceptions.RequestException, APIRequestException) as err:
+            logging.critical(f"🚫 Fatal error fetching schools data: {err}")
+            raise SchoolsDataException(str(err), page=page)
 
     def fetch_schools_segment(
         self, start_page: int, max_schools: int = APISettings.MAX_SCHOOLS_SEGMENT
