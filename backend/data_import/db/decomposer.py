@@ -4,6 +4,7 @@ from typing import Self
 
 from pydantic_core import ValidationError
 from sqlalchemy import Engine
+from sqlalchemy.sql.elements import BinaryExpression
 from sqlmodel import Session, SQLModel, select
 
 from ...app.core.database import engine
@@ -64,7 +65,9 @@ class DatabaseDecomposer:
             self.session = Session(self.engine)
         return self.session
 
-    def _select_where[T: SQLModel](self, model: type[T], condition: bool) -> T | None:
+    def _select_where[T: SQLModel](
+        self, model: type[T], condition: BinaryExpression[bool] | bool
+    ) -> T | None:
         """Generic method to select a record based on a condition"""
         session = self._ensure_session()
         return session.exec(select(model).where(condition)).first()
