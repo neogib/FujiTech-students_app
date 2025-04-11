@@ -4,3 +4,6 @@ commit #3
 commit #4
 commit #5
 current changes
+new 6
+next one 7
+working changes
