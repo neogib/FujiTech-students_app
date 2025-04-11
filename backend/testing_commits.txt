@@ -8,3 +8,4 @@ new 6
 next one 7
 working changes
 oh, changes where resetted with --hard and HEAD~1 😂
+okay, now lets' try revert
