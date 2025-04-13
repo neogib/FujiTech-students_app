@@ -11,6 +11,7 @@
 		"preinstall": "npx only-allow pnpm"
 	},
 	"dependencies": {
+		"maplibre-gl": "^5.2.0",
 		"nuxt": "^3.15.4",
 		"vue": "latest",
 		"vue-router": "latest"
@@ -20,8 +21,5 @@
 			"@parcel/watcher",
 			"esbuild"
 		]
-	},
-	"devDependencies": {
-		"@rollup/rollup-linux-arm64-gnu": "^4.36.0"
 	}
 }
