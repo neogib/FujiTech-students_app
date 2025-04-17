@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-// Correct: Only import the default export and the CSS
 import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css"; // Make sure CSS is loaded (can be here or nuxt.config.ts)
+import "maplibre-gl/dist/maplibre-gl.css"; 
 
 const schools = [
     {
@@ -47,13 +46,13 @@ const getShapeSVG = (type: string): string => {
     // Using currentColor allows the SVG fill to inherit the color set via CSS
     switch (type) {
         case "Technikum":
-            return "<rect width='24' height='24' style='fill:currentColor;stroke:black;stroke-width:1;'/>"; // Adjusted stroke for visibility
+            return "<rect width='24' height='24' style='fill:currentColor;stroke:black;stroke-width:1;'/>"; 
         case "Liceum":
-            return "<circle cx='12' cy='12' r='11' style='fill:currentColor;stroke:black;stroke-width:1;'/>"; // Adjusted stroke/radius
+            return "<circle cx='12' cy='12' r='11' style='fill:currentColor;stroke:black;stroke-width:1;'/>";
         case "Zawodowka":
-            return "<polygon points='12,2 22,22 2,22' style='fill:currentColor;stroke:black;stroke-width:1;'/>"; // Adjusted points/stroke
+            return "<polygon points='12,2 22,22 2,22' style='fill:currentColor;stroke:black;stroke-width:1;'/>";
         default:
-            return "<circle cx='12' cy='12' r='11' style='fill:currentColor;stroke:black;stroke-width:1;'/>"; // Default with stroke
+            return "<circle cx='12' cy='12' r='11' style='fill:currentColor;stroke:black;stroke-width:1;'/>";
     }
 };
 
@@ -111,18 +110,18 @@ onMounted(() => {
 <style scoped>
 .map-container {
     width: 100%;
-    height: 90vh; /* Make container take significant height */
+    height: 90vh; 
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center map horizontally */
-    padding: 1rem; /* Add some padding around */
+    align-items: center; 
+    padding: 1rem; 
     box-sizing: border-box;
 }
 
 #map {
-    width: 100%; /* Map takes full width of container */
-    max-width: 1200px; /* Optional: constrain max width */
-    height: 100%; /* Map takes full height of container */
+    width: 100%; 
+    max-width: 1200px; 
+    height: 100%; 
     border: 1px solid #ccc;
     border-radius: 8px;
 }

@@ -9,7 +9,6 @@ const { data, error, status } = useApi<BackendResponse>("/users");
 </script>
 
 <template>
-  <!-- Wrap everything in a single root div -->
   <div>
     <div>
       <h1>Test połączenia z backendem</h1>
@@ -27,5 +26,4 @@ const { data, error, status } = useApi<BackendResponse>("/users");
 </template>
 
 <style scoped>
-/* Add styles if needed */
 </style>
