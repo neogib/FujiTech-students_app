@@ -5,7 +5,6 @@
     "strict": true,
     "moduleResolution": "node",
     "target": "ESNext",
-    "types": ["@types/ol"]
   },
   "include": ["**/*.ts", "**/*.vue", "types/**/*.d.ts"]
 }
