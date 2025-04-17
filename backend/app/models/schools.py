@@ -1,6 +1,9 @@
+from typing import TYPE_CHECKING
+
 from sqlmodel import Field, Relationship, SQLModel
 
-from .locations import Miejscowosc, Ulica
+if TYPE_CHECKING:
+    from .locations import Miejscowosc, Ulica
 
 
 class TypBase(SQLModel):
@@ -105,8 +108,8 @@ class Szkola(SzkolaAllData, table=True):
     status_publicznoprawny: StatusPublicznoprawny = Relationship(
         back_populates="szkoly"
     )
-    miejscowosc: Miejscowosc = Relationship(back_populates="szkoly")
-    ulica: Ulica | None = Relationship(back_populates="szkoly")
+    miejscowosc: "Miejscowosc" = Relationship(back_populates="szkoly")
+    ulica: "Ulica | None" = Relationship(back_populates="szkoly")
 
     # Relationships - many-to-many
     etapy_edukacji: list[EtapEdukacji] = Relationship(
