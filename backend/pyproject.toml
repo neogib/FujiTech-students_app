@@ -21,17 +21,17 @@ dev = [
 
 [tool.ruff.lint]
 select = [
-    "E4", 
-    "E7", 
-    "E9", 
-    "F",     # pyflakes
-    "B",     # flake8-bugbear
-    "I",     # isort 
-    "Q",     # quotes
-    "ARG", # unused arguments
-    "FAST", # FastAPI
-    "N",     # pep8-naming
-    "RUF" # ruff-speicif rules
+    "E4",  # pycodestyle (specifically import conventions like E402)
+    "E7",  # pycodestyle errors (comparisons, bare excepts)
+    "E9",  # pycodestyle runtime/syntax errors 
+    "F",   # Pyflakes (undefined names, unused imports/variables, etc.)
+    "B",   # flake8-bugbear (potential bugs and design problems)
+    "I",   # isort (import sorting)
+    "Q",   # flake8-quotes (quote consistency)
+    "ARG", # flake8-unused-arguments (detect unused function arguments)
+    "FAST",# flake8-fastapi (FastAPI specific linting rules)
+    "N",   # pep8-naming (PEP 8 naming conventions)
+    "RUF"  # Ruff-specific rules (built-in rules unique to Ruff)
 ]
 
 [tool.basedpyright]
@@ -41,3 +41,4 @@ reportUnusedImport = "none"
 reportUnusedFunction = "none"
 reportUnusedClass = "none"
 reportUnusedExpression = "none"
+reportImportCycles = "none" # using ORMs it is almost impossible to avoid cycles
