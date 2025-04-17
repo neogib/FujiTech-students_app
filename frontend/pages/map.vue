@@ -28,7 +28,6 @@ const schools = [
     },
     {
         name: "Technikum Komunikacyjne",
-        // Note: Same coordinates as the first one, will overlap
         lat: 52.2298,
         lon: 21.0118,
         type: "Technikum",
@@ -105,7 +104,6 @@ onMounted(() => {
 <template>
     <div class="map-container">
         <h1>Mapa OpenStreetMap (MapLibre) - Szkoły</h1>
-        <!-- This div is the target for the map -->
         <div id="map"></div>
     </div>
 </template>
@@ -113,7 +111,6 @@ onMounted(() => {
 <style scoped>
 .map-container {
     width: 100%;
-    /* Using vh units can be tricky, consider flex or grid parent if needed */
     height: 90vh; /* Make container take significant height */
     display: flex;
     flex-direction: column;
@@ -129,5 +126,4 @@ onMounted(() => {
     border: 1px solid #ccc;
     border-radius: 8px;
 }
-
 </style>

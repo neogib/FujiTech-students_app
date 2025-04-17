@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2024-11-01", // Keep this or update as needed
+  compatibilityDate: "2024-11-01", 
   devtools: {
     enabled: true,
     timeline: {
@@ -8,18 +8,11 @@ export default defineNuxtConfig({
     },
   },
   css: [
-    'maplibre-gl/dist/maplibre-gl.css' // Good - keep this
+    'maplibre-gl/dist/maplibre-gl.css' 
   ],
-  // plugins: [ <--- REMOVE THIS ARRAY ENTIRELY
-  //   '~/plugins/vue-maplibre-gl.ts'
-  // ],
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8000",
     },
   },
-  // Add this build option if you still encounter issues with the map library
-  // build: {
-  //   transpile: ['vue-maplibre-gl', 'maplibre-gl']
-  // }
 });
