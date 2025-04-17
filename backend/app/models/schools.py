@@ -12,7 +12,7 @@ class TypBase(SQLModel):
 
 class Typ(TypBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkola"] = Relationship(back_populates="typ")
+    szkoly: list["Szkola"] = Relationship(back_populates="typ")  # pyright: ignore [reportAny]
 
 
 class TypPublic(TypBase):
@@ -27,7 +27,7 @@ class StatusPublicznoprawny(StatusPublicznoprawnyBase, table=True):
     __tablename__: str = "status_publicznoprawny"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkola"] = Relationship(back_populates="status_publicznoprawny")
+    szkoly: list["Szkola"] = Relationship(back_populates="status_publicznoprawny")  # pyright: ignore [reportAny]
 
 
 class StatusPublicznoprawnyPublic(StatusPublicznoprawnyBase):
@@ -52,7 +52,7 @@ class EtapEdukacji(EtapEdukacjiBase, table=True):
     __tablename__: str = "etap_edukacji"  # pyright: ignore[reportIncompatibleVariableOverride]
 
     id: int | None = Field(default=None, primary_key=True)
-    szkoly: list["Szkola"] = Relationship(
+    szkoly: list["Szkola"] = Relationship(  # pyright: ignore [reportAny]
         back_populates="etapy_edukacji", link_model=SzkolaEtapLink
     )
 
@@ -104,14 +104,14 @@ class Szkola(SzkolaAllData, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     # Relationships - many-to-one
-    typ: Typ = Relationship(back_populates="szkoly")
-    status_publicznoprawny: StatusPublicznoprawny = Relationship(
+    typ: Typ = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
+    status_publicznoprawny: StatusPublicznoprawny = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly"
     )
-    miejscowosc: "Miejscowosc" = Relationship(back_populates="szkoly")
-    ulica: "Ulica | None" = Relationship(back_populates="szkoly")
+    miejscowosc: "Miejscowosc" = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
+    ulica: "Ulica | None" = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
 
     # Relationships - many-to-many
-    etapy_edukacji: list[EtapEdukacji] = Relationship(
+    etapy_edukacji: list[EtapEdukacji] = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly", link_model=SzkolaEtapLink
     )
