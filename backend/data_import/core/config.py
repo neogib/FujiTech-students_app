@@ -10,3 +10,8 @@ class RetrySettings:
     INITIAL_DELAY: int = 1
     MAX_DELAY: int = 30
     MAX_RETRIES: int = 20
+
+
+class TIMEOUT:
+    CONNECT: int = 30
+    READ: int = 60

@@ -4,7 +4,7 @@ from typing import cast
 
 import requests
 
-from ..core.config import APISettings, RetrySettings
+from ..core.config import TIMEOUT, APISettings, RetrySettings
 from .exceptions import APIRequestException, SchoolsDataException
 from .types import APIResponse, SchoolDict
 
@@ -47,7 +47,10 @@ class SchoolsAPIFetcher:
         for attempt in range(max_retries):
             try:
                 response = requests.get(
-                    self.base_url, headers=self.headers, params=params
+                    self.base_url,
+                    headers=self.headers,
+                    params=params,
+                    timeout=(TIMEOUT.CONNECT, TIMEOUT.READ),
                 )
                 response.raise_for_status()  # Raises HTTPError for bad status codes
                 return cast(APIResponse, response.json())
