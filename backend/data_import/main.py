@@ -1,6 +1,7 @@
 import logging
 
 from ..app.core.database import create_db_and_tables
+from .api.exceptions import SchoolsDataException
 from .api.fetcher import SchoolsAPIFetcher
 from .core.config import APISettings
 from .db.decomposer import DatabaseDecomposer
@@ -16,6 +17,13 @@ def configure_logging():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[file_handler, stream_handler],
     )
+
+
+def print_error_message(segment_number: int, current_page: int):
+    logger.error(f"""
+                 ❌ Error processing segment {segment_number}
+                 ⚠️ Process stopped at page {current_page}
+                 💡 You can resume the process by starting from this page""")
 
 
 def main():
@@ -39,7 +47,7 @@ def main():
             )
 
             if not schools_data:
-                logger.info("🛈 No more schools to process")
+                logger.info("ℹ️ No more schools to process")
                 break
 
             logger.info(
@@ -61,10 +69,14 @@ def main():
             current_page = next_page
             segment_number += 1
 
+        except SchoolsDataException as e:
+            logger.error(f"📛 Schools data error: {e}")
+            print_error_message(segment_number, current_page)
+            break
+
         except Exception as e:
-            logger.error(f"❌ Error processing segment {segment_number}: {e}")
-            logger.error(f"⚠ Process stopped at page {current_page}")
-            logger.error("💡 You can resume the process by starting from this page")
+            logger.critical(f"🚨 Unhandled, critical error: {e}")
+            print_error_message(segment_number, current_page)
             break
 
     logger.info(f"🎉 Import completed. Total schools processed: {total_processed}")

@@ -78,7 +78,7 @@ class SchoolsAPIFetcher:
             data = self.api_request(params)
             hydra_response = HydraResponse(data)
             return hydra_response
-        except (requests.exceptions.RequestException, APIRequestException) as err:
+        except APIRequestException as err:
             logging.critical(f"🚫 Fatal error fetching schools data: {err}")
             raise SchoolsDataException(str(err), page=page) from err
 
