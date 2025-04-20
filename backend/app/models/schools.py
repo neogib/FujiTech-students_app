@@ -6,16 +6,16 @@ if TYPE_CHECKING:
     from .locations import Miejscowosc, Ulica
 
 
-class TypBase(SQLModel):
+class TypSzkolyBase(SQLModel):
     nazwa: str = Field(index=True, unique=True)
 
 
-class Typ(TypBase, table=True):
+class TypSzkoly(TypSzkolyBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     szkoly: list["Szkola"] = Relationship(back_populates="typ")  # pyright: ignore [reportAny]
 
 
-class TypPublic(TypBase):
+class TypSzkolyPublic(TypSzkolyBase):
     id: int
 
 
@@ -104,7 +104,7 @@ class Szkola(SzkolaAllData, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
     # Relationships - many-to-one
-    typ: Typ = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
+    typ: TypSzkoly = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
     status_publicznoprawny: StatusPublicznoprawny = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly"
     )

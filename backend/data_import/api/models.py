@@ -7,7 +7,7 @@ from ...app.models.schools import (
     EtapEdukacjiBase,
     StatusPublicznoprawnyBase,
     SzkolaExtendedData,
-    TypBase,
+    TypSzkolyBase,
 )
 from ..utils.convert_to_camel import custom_camel
 from .types import SchoolDict
@@ -21,7 +21,7 @@ class GeolocationAPIResponse(SQLModel):
 class SzkolaAPIResponse(SzkolaExtendedData):
     model_config: ConfigDict = ConfigDict(alias_generator=custom_camel)  # pyright: ignore[reportIncompatibleVariableOverride]
     geolokalizacja: GeolocationAPIResponse
-    typ: TypBase
+    typ: TypSzkolyBase
     status_publiczno_prawny: StatusPublicznoprawnyBase
     etapy_edukacji: list[EtapEdukacjiBase]
     wojewodztwo: str

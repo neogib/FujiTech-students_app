@@ -16,8 +16,8 @@ from ...app.models.schools import (
     StatusPublicznoprawnyBase,
     Szkola,
     SzkolaEtapLink,  # noqa: F401
-    Typ,
-    TypBase,
+    TypSzkoly,
+    TypSzkolyBase,
 )
 from ..api.models import SzkolaAPIResponse
 from ..api.types import SchoolDict
@@ -35,7 +35,7 @@ class DatabaseDecomposer:
         self.gminy_cache: dict[str, Gmina] = {}
         self.miejscowosci_cache: dict[str, Miejscowosc] = {}
         self.ulice_cache: dict[str, Ulica | None] = {}
-        self.typy_cache: dict[str, Typ] = {}
+        self.typy_cache: dict[str, TypSzkoly] = {}
         self.statusy_cache: dict[str, StatusPublicznoprawny] = {}
         self.etapy_edukacji_cache: dict[str, EtapEdukacji] = {}
 
@@ -151,16 +151,16 @@ class DatabaseDecomposer:
         self.ulice_cache[cache_key] = ulica
         return ulica
 
-    def _get_or_create_typ_szkoly(self, typ: TypBase) -> Typ:
+    def _get_or_create_typ_szkoly(self, typ: TypSzkolyBase) -> TypSzkoly:
         """Get or create a school type record"""
         nazwa = typ.nazwa
         if nazwa in self.typy_cache:
             return self.typy_cache[nazwa]
 
-        typ_szkoly = self._select_where(Typ, Typ.nazwa == nazwa)
+        typ_szkoly = self._select_where(TypSzkoly, TypSzkoly.nazwa == nazwa)
 
         if not typ_szkoly:
-            typ_szkoly = Typ.model_validate(typ)
+            typ_szkoly = TypSzkoly.model_validate(typ)
 
         self.typy_cache[nazwa] = typ_szkoly
         return typ_szkoly
@@ -235,7 +235,7 @@ class DatabaseDecomposer:
 
     def _process_school_type_data(
         self, school_data: SzkolaAPIResponse
-    ) -> tuple[Typ, StatusPublicznoprawny]:
+    ) -> tuple[TypSzkoly, StatusPublicznoprawny]:
         """Process school type and status data"""
         typ = self._get_or_create_typ_szkoly(typ=school_data.typ)
         status = self._get_or_create_status(status=school_data.status_publiczno_prawny)
@@ -265,7 +265,7 @@ class DatabaseDecomposer:
     def _create_school_object(
         self,
         school_data: SzkolaAPIResponse,
-        typ: Typ,
+        typ: TypSzkoly,
         status: StatusPublicznoprawny,
         miejscowosc: Miejscowosc,
         ulica: Ulica | None,
