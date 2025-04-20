@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional  # pyright: ignore[reportDeprecated]
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -11,6 +11,8 @@ class TypSzkolyBase(SQLModel):
 
 
 class TypSzkoly(TypSzkolyBase, table=True):
+    __tablename__: str = "typ_szkoly"  # pyright: ignore[reportIncompatibleVariableOverride]
+
     id: int | None = Field(default=None, primary_key=True)
     szkoly: list["Szkola"] = Relationship(back_populates="typ")  # pyright: ignore [reportAny]
 
@@ -88,7 +90,7 @@ class SzkolaAllData(SzkolaExtendedData):
     geolokalizacja_latitude: float
     geolokalizacja_longitude: float
     # Foreign keys
-    typ_id: int | None = Field(default=None, foreign_key="typ.id")
+    typ_id: int | None = Field(default=None, foreign_key="typ_szkoly.id")
     status_publicznoprawny_id: int | None = Field(
         default=None, foreign_key="status_publicznoprawny.id"
     )
@@ -109,7 +111,7 @@ class Szkola(SzkolaAllData, table=True):
         back_populates="szkoly"
     )
     miejscowosc: "Miejscowosc" = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
-    ulica: "Ulica | None" = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
+    ulica: Optional["Ulica"] = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny, reportDeprecated]
 
     # Relationships - many-to-many
     etapy_edukacji: list[EtapEdukacji] = Relationship(  # pyright: ignore [reportAny]
