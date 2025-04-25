@@ -26,12 +26,7 @@ def print_error_message(segment_number: int, current_page: int):
                  💡 You can resume the process by starting from this page""")
 
 
-def main():
-    configure_logging()
-    logger.info("🛠️ Creating database and tables...")
-    create_db_and_tables()
-
-    logger.info("📥 Starting segmented schools data import...")
+def api_importer():
     api_fetcher = SchoolsAPIFetcher()
     current_page = APISettings.START_PAGE
     total_processed = 0
@@ -80,6 +75,20 @@ def main():
             break
 
     logger.info(f"🎉 Import completed. Total schools processed: {total_processed}")
+
+
+def excel_importer():
+    pass
+
+
+def main():
+    configure_logging()
+    logger.info("🛠️ Creating database and tables...")
+    create_db_and_tables()
+
+    logger.info("📥 Starting segmented schools data import...")
+    api_importer()
+    excel_importer()
 
 
 if __name__ == "__main__":
