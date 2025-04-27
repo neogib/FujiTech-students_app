@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .core.config import ExcelDirectory
+from .core.config import ExcelDirectory, ExcelFile
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,11 @@ class ExcelReader:
     def read_files_from_dir(self, directory_path: Path):
         for file_path in directory_path.glob("*.xlsx"):
             logger.info(f"Reading file: {file_path.name}")
-            df = pd.read_excel(file_path)  # pyright: ignore[reportUnknownMemberType]
+            df = pd.read_excel(  # pyright: ignore[reportUnknownMemberType]
+                file_path,
+                sheet_name=ExcelFile.SHEET_NAME,
+                header=ExcelFile.HEADER,
+            )
             logger.info(f"First 5 rows:\n{df.head()}")
 
     def load_excel_files(self):

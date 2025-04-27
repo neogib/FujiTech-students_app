@@ -5,6 +5,7 @@ from .api.exceptions import SchoolsDataError
 from .api.fetcher import SchoolsAPIFetcher
 from .core.config import APISettings
 from .db.decomposer import DatabaseDecomposer
+from .excel.reader import ExcelReader
 
 logger = logging.getLogger(__name__)
 
@@ -78,16 +79,17 @@ def api_importer():
 
 
 def excel_importer():
-    pass
+    reader = ExcelReader()
+    reader.load_excel_files()
 
 
 def main():
     configure_logging()
-    logger.info("🛠️ Creating database and tables...")
+    # logger.info("🛠️ Creating database and tables...")
     create_db_and_tables()
 
     logger.info("📥 Starting segmented schools data import...")
-    api_importer()
+    # api_importer()
     excel_importer()
 
 
