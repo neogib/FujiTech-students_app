@@ -5,6 +5,7 @@ from .api.exceptions import SchoolsDataError
 from .api.fetcher import SchoolsAPIFetcher
 from .core.config import APISettings
 from .db.decomposer import DatabaseDecomposer
+from .excel.core.config import ExcelDirectory
 from .excel.reader import ExcelReader
 
 logger = logging.getLogger(__name__)
@@ -80,7 +81,9 @@ def api_importer():
 
 def excel_importer():
     reader = ExcelReader()
-    reader.load_excel_files()
+    for _ in reader.load_files(ExcelDirectory.E8):
+        # TO DO
+        pass
 
 
 def main():

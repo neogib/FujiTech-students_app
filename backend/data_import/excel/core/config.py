@@ -1,8 +1,9 @@
+from enum import Enum
 from typing import ClassVar, final
 
 
 @final
-class ExcelDirectory:
+class ExcelDirectory(Enum):
     E8 = "E8_data"
     EM = "EM_data"
 

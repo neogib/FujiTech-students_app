@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Generator
 from pathlib import Path
 
 import pandas as pd
@@ -10,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 class ExcelReader:
     base_data_path: Path = Path(__file__).parent
-    e8_path: Path
-    em_path: Path
 
     def __init__(self, base_data_path: Path | None = None):
         """
@@ -23,10 +22,8 @@ class ExcelReader:
         """
         if base_data_path is not None:
             self.base_data_path = base_data_path
-        self.e8_path = self.base_data_path / ExcelDirectory.E8
-        self.em_path = self.base_data_path / ExcelDirectory.EM
 
-    def read_files_from_dir(self, directory_path: Path):
+    def read_files_from_dir(self, directory_path: Path) -> Generator[pd.DataFrame]:
         for file_path in directory_path.glob("*.xlsx"):
             logger.info(f"Reading file: {file_path.name}")
             df = pd.read_excel(  # pyright: ignore[reportUnknownMemberType]
@@ -35,15 +32,15 @@ class ExcelReader:
                 header=ExcelFile.HEADER,
             )
             logger.info(f"First 5 rows:\n{df.head()}")
+            yield df
 
-    def load_excel_files(self):
+    def load_files(self, directory_type: ExcelDirectory) -> Generator[pd.DataFrame]:
         """
-        Loads Excel files from E8 and EM directories
+        Loads Excel files from E8 or EM directories
         """
-        logger.info(f"E8 Data ({self.e8_path})")
-        self.read_files_from_dir(self.e8_path)
+        target_dir = directory_type.value
+        path = self.base_data_path / target_dir
+        logger.info(f"Loading data from {path}")
+        yield from self.read_files_from_dir(path)
 
-        logger.info(f"EM Data ({self.em_path})")
-        self.read_files_from_dir(self.em_path)
-
-        logger.info("Finished reading all files")
+        logger.info(f"Finished reading files from {path}")
