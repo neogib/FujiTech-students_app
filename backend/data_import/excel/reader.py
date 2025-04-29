@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .core.config import ExcelDirectory, ExcelFile
+from data_import.excel.core.config import ExcelDirectory, ExcelFile
 
 logger = logging.getLogger(__name__)
 

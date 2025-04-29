@@ -7,9 +7,9 @@ from sqlalchemy import Engine
 from sqlalchemy.sql.elements import BinaryExpression
 from sqlmodel import Session, SQLModel, select
 
-from ...app.core.database import engine
-from ...app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
-from ...app.models.schools import (
+from app.core.database import engine
+from app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
+from app.models.schools import (
     EtapEdukacji,
     EtapEdukacjiBase,
     StatusPublicznoprawny,
@@ -19,14 +19,14 @@ from ...app.models.schools import (
     TypSzkoly,
     TypSzkolyBase,
 )
-from ..api.models import SzkolaAPIResponse
-from ..api.types import SchoolDict
-from .excluded_fields import SchoolFieldExclusions
+from data_import.api.models import SzkolaAPIResponse
+from data_import.api.types import SchoolDict
+from data_import.db.excluded_fields import SchoolFieldExclusions
 
 logger = logging.getLogger(__name__)
 
 
-class DatabaseDecomposer:
+class Decomposer:
     def __init__(self):
         self.engine: Engine = engine
         self.session: Session | None = None

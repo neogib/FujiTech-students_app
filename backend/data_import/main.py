@@ -1,12 +1,12 @@
 import logging
 
-from ..app.core.database import create_db_and_tables
-from .api.exceptions import SchoolsDataError
-from .api.fetcher import SchoolsAPIFetcher
-from .core.config import APISettings
-from .db.decomposer import DatabaseDecomposer
-from .excel.core.config import ExcelDirectory
-from .excel.reader import ExcelReader
+from app.core.database import create_db_and_tables
+from data_import.api.exceptions import SchoolsDataError
+from data_import.api.fetcher import SchoolsAPIFetcher
+from data_import.core.config import APISettings
+from data_import.db.decomposer import Decomposer
+from data_import.excel.core.config import ExcelDirectory
+from data_import.excel.reader import ExcelReader
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,7 @@ def api_importer():
             logger.info(
                 f"⚡ Processing {len(schools_data)} schools from segment {segment_number}..."
             )
-            with DatabaseDecomposer() as decomposer:
+            with Decomposer() as decomposer:
                 decomposer.prune_and_decompose_schools(schools_data)
 
             total_processed += len(schools_data)
