@@ -21,7 +21,7 @@ from app.models.schools import (
 )
 from data_import.api.models import SzkolaAPIResponse
 from data_import.api.types import SchoolDict
-from data_import.db.excluded_fields import SchoolFieldExclusions
+from data_import.api.db.excluded_fields import SchoolFieldExclusions
 
 logger = logging.getLogger(__name__)
 

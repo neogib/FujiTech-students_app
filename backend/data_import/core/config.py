@@ -1,4 +1,5 @@
-from typing import ClassVar
+from enum import Enum
+from typing import ClassVar, final
 
 
 class APISettings:
@@ -18,3 +19,15 @@ class RetrySettings:
 class TIMEOUT:
     CONNECT: int = 30
     READ: int = 60
+
+
+@final
+class ExcelDirectory(Enum):
+    E8 = "E8_data"
+    EM = "EM_data"
+
+
+@final
+class ExcelFile:
+    SHEET_NAME = "SAS"
+    HEADER: ClassVar[list[int]] = [0, 1]

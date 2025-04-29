@@ -1,11 +1,10 @@
 import logging
 
 from app.core.database import create_db_and_tables
+from data_import.api.db.decomposer import Decomposer
 from data_import.api.exceptions import SchoolsDataError
 from data_import.api.fetcher import SchoolsAPIFetcher
-from data_import.core.config import APISettings
-from data_import.db.decomposer import Decomposer
-from data_import.excel.core.config import ExcelDirectory
+from data_import.core.config import APISettings, ExcelDirectory
 from data_import.excel.reader import ExcelReader
 
 logger = logging.getLogger(__name__)
