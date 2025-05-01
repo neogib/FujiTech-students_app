@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from data_import.core.config import ExcelDirectory, ExcelFile
+from data_import.core.config import ExamType, ExcelFile
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class ExcelReader:
             logger.info(f"First 5 rows:\n{df.head()}")
             yield df
 
-    def load_files(self, directory_type: ExcelDirectory) -> Generator[pd.DataFrame]:
+    def load_files(self, directory_type: ExamType) -> Generator[pd.DataFrame]:
         """
         Loads Excel files from E8 or EM directories
         """

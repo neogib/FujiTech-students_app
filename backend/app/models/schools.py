@@ -120,5 +120,5 @@ class Szkola(SzkolaAllData, table=True):
     etapy_edukacji: list[EtapEdukacji] = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly", link_model=SzkolaEtapLink
     )
-    egzaminy_e8: list["WynikE8"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
-    egzaminy_em: list["WynikEM"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
+    wyniki_e8: list["WynikE8"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
+    wyniki_em: list["WynikEM"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]

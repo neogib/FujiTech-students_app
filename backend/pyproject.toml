@@ -13,6 +13,7 @@ dependencies = [
     "pydantic-settings>=2.8.1",
     "requests>=2.32.3",
     "sqlmodel>=0.0.24",
+    "unidecode>=1.4.0",
 ]
 
 [dependency-groups]

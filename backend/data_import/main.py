@@ -4,7 +4,7 @@ from app.core.database import create_db_and_tables
 from data_import.api.db.decomposer import Decomposer
 from data_import.api.exceptions import SchoolsDataError
 from data_import.api.fetcher import SchoolsAPIFetcher
-from data_import.core.config import APISettings, ExcelDirectory
+from data_import.core.config import APISettings, ExamType
 from data_import.excel.db.table_splitter import TableSplitter
 from data_import.excel.reader import ExcelReader
 
@@ -81,9 +81,9 @@ def api_importer():
 
 def excel_importer():
     reader = ExcelReader()
-    for exam_data in reader.load_files(ExcelDirectory.E8):
-        splitter = TableSplitter(exam_data)
-        splitter.split_exam_results()
+    for exam_data in reader.load_files(ExamType.E8):
+        with TableSplitter(exam_data, ExamType.E8) as splitter:
+            splitter.split_exam_results()
 
 
 def main():

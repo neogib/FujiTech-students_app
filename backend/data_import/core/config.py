@@ -22,7 +22,7 @@ class TIMEOUT:
 
 
 @final
-class ExcelDirectory(Enum):
+class ExamType(Enum):
     E8 = "E8_data"
     EM = "EM_data"
 
