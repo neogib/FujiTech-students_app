@@ -1,8 +1,6 @@
 import logging
 
 from pydantic_core import ValidationError
-from sqlalchemy.sql.elements import BinaryExpression
-from sqlmodel import SQLModel, select
 
 from app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
 from app.models.schools import (
@@ -18,12 +16,12 @@ from app.models.schools import (
 from data_import.api.db.excluded_fields import SchoolFieldExclusions
 from data_import.api.models import SzkolaAPIResponse
 from data_import.api.types import SchoolDict
-from data_import.utils.db.session import SessionManagerBase
+from data_import.utils.db.session import DatabaseManagerBase
 
 logger = logging.getLogger(__name__)
 
 
-class Decomposer(SessionManagerBase):
+class Decomposer(DatabaseManagerBase):
     def __init__(self):
         super().__init__()
         self.wojewodztwa_cache: dict[str, Wojewodztwo] = {}
@@ -34,13 +32,6 @@ class Decomposer(SessionManagerBase):
         self.typy_cache: dict[str, TypSzkoly] = {}
         self.statusy_cache: dict[str, StatusPublicznoprawny] = {}
         self.etapy_edukacji_cache: dict[str, EtapEdukacji] = {}
-
-    def _select_where[T: SQLModel](
-        self, model: type[T], condition: BinaryExpression[bool] | bool
-    ) -> T | None:
-        """Generic method to select a record based on a condition"""
-        session = self._ensure_session()
-        return session.exec(select(model).where(condition)).first()
 
     def _get_or_create_wojewodztwo(self, nazwa: str, teryt: str) -> Wojewodztwo:
         """Get or create a voivodeship record"""

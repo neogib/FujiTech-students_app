@@ -1,13 +1,13 @@
 from types import TracebackType
 from typing import Self
 
-from sqlalchemy import Engine
-from sqlmodel import Session
+from sqlalchemy import BinaryExpression, Engine
+from sqlmodel import Session, SQLModel, select
 
 from app.core.database import engine
 
 
-class SessionManagerBase:
+class DatabaseManagerBase:
     """Base class providing session management functionality"""
 
     engine: Engine
@@ -42,3 +42,10 @@ class SessionManagerBase:
         if self.session is None:
             self.session = Session(self.engine)
         return self.session
+
+    def _select_where[T: SQLModel](
+        self, model: type[T], condition: BinaryExpression[bool] | bool
+    ) -> T | None:
+        """Generic method to select a record based on a condition"""
+        session = self._ensure_session()
+        return session.exec(select(model).where(condition)).first()
