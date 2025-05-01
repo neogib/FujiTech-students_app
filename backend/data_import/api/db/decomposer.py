@@ -1,13 +1,9 @@
 import logging
-from types import TracebackType
-from typing import Self
 
 from pydantic_core import ValidationError
-from sqlalchemy import Engine
 from sqlalchemy.sql.elements import BinaryExpression
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import SQLModel, select
 
-from app.core.database import engine
 from app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
 from app.models.schools import (
     EtapEdukacji,
@@ -19,17 +15,17 @@ from app.models.schools import (
     TypSzkoly,
     TypSzkolyBase,
 )
+from data_import.api.db.excluded_fields import SchoolFieldExclusions
 from data_import.api.models import SzkolaAPIResponse
 from data_import.api.types import SchoolDict
-from data_import.api.db.excluded_fields import SchoolFieldExclusions
+from data_import.utils.db.session import SessionManagerBase
 
 logger = logging.getLogger(__name__)
 
 
-class Decomposer:
+class Decomposer(SessionManagerBase):
     def __init__(self):
-        self.engine: Engine = engine
-        self.session: Session | None = None
+        super().__init__()
         self.wojewodztwa_cache: dict[str, Wojewodztwo] = {}
         self.powiaty_cache: dict[str, Powiat] = {}
         self.gminy_cache: dict[str, Gmina] = {}
@@ -38,32 +34,6 @@ class Decomposer:
         self.typy_cache: dict[str, TypSzkoly] = {}
         self.statusy_cache: dict[str, StatusPublicznoprawny] = {}
         self.etapy_edukacji_cache: dict[str, EtapEdukacji] = {}
-
-    def __enter__(self) -> Self:
-        # Create the session when entering the context
-        self.session = Session(self.engine)
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        # Close the session when exiting the context
-        self.close()
-
-    def close(self) -> None:
-        """Manual close method for when not using as context manager"""
-        if self.session:
-            self.session.close()
-            self.session = None
-
-    def _ensure_session(self) -> Session:
-        """Ensure we have an active session and return it"""
-        if self.session is None:
-            self.session = Session(self.engine)
-        return self.session
 
     def _select_where[T: SQLModel](
         self, model: type[T], condition: BinaryExpression[bool] | bool
