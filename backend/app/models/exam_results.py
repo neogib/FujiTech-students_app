@@ -17,8 +17,8 @@ class Przedmiot(PrzedmiotBase, table=True):
 
 
 class WynikBase(SQLModel):
-    liczba_zdjacych: int | None
-    sredni_wynik: float | None
+    liczba_zdajacych: int | None
+    wynik_sredni: float | None
     mediana: float | None
 
 
