@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, Optional  # pyright: ignore[reportDeprecated]
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from .locations import Miejscowosc, Ulica
+    from app.models.exam_results import WynikE8, WynikEM
+    from app.models.locations import Miejscowosc, Ulica
 
 
 class TypSzkolyBase(SQLModel):
@@ -117,3 +118,5 @@ class Szkola(SzkolaAllData, table=True):
     etapy_edukacji: list[EtapEdukacji] = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly", link_model=SzkolaEtapLink
     )
+    egzaminy_e8: list["WynikE8"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
+    egzaminy_em: list["WynikEM"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
