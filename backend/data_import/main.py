@@ -83,6 +83,8 @@ def excel_importer():
     reader = ExcelReader()
     for exam_data in reader.load_files(ExamType.E8):
         with TableSplitter(exam_data, ExamType.E8) as splitter:
+            if not splitter.initialize():
+                continue  # skipt this file - it was invalid
             splitter.split_exam_results()
 
 

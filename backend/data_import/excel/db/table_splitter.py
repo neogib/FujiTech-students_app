@@ -18,7 +18,7 @@ class TableSplitter(DatabaseManagerBase):
     engine: Engine
     session: Session | None
     exam_data: pd.DataFrame
-    rspo_col_name: tuple[str, str]
+    rspo_col_name: tuple[str, str] = ("", "")
     unique_subjects: set[str]
     exam_type: ExamType
     przedmioty_cache: dict[str, Przedmiot]
@@ -29,8 +29,17 @@ class TableSplitter(DatabaseManagerBase):
         self.exam_type = exam_type
         self.unique_subjects = set()
         self.przedmioty_cache = {}
-        self._get_rspo_index()
-        self._get_subjects_names()
+
+    def initialize(self) -> bool:
+        """Perform initialization and validation steps.
+        Returns True if successful, False otherwise."""
+        try:
+            self._get_rspo_index()
+            self._get_subjects_names()
+            return True
+        except ValueError as e:
+            logger.error(f"❌ Error during initialization: {e}. Skipping this file...")
+            return False
 
     def _get_rspo_index(self):
         rspo_cols = [
