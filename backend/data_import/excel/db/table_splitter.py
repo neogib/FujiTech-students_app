@@ -1,4 +1,7 @@
+# pyright: reportExplicitAny=false, reportAny=false
 import logging
+from collections.abc import Hashable
+from typing import Any
 
 import pandas as pd
 from pydantic import ValidationError
@@ -22,6 +25,9 @@ class TableSplitter(DatabaseManagerBase):
     unique_subjects: set[str]
     exam_type: ExamType
     przedmioty_cache: dict[str, Przedmiot]
+    processed_count: int = 0
+    skipped_schools: int = 0
+    added_results: int = 0
 
     def __init__(self, exam_data: pd.DataFrame, exam_type: ExamType):
         super().__init__()
@@ -34,14 +40,14 @@ class TableSplitter(DatabaseManagerBase):
         """Perform initialization and validation steps.
         Returns True if successful, False otherwise."""
         try:
-            self._get_rspo_index()
+            self._get_rspo_col_name()
             self._get_subjects_names()
             return True
         except ValueError as e:
             logger.error(f"❌ Error during initialization: {e}. Skipping this file...")
             return False
 
-    def _get_rspo_index(self):
+    def _get_rspo_col_name(self):
         rspo_cols = [
             col
             for col in self.exam_data.columns
@@ -99,115 +105,122 @@ class TableSplitter(DatabaseManagerBase):
         for subject_name in self.unique_subjects:
             self.create_subject(clean_column_name(subject_name))
 
+    def get_school_rspo_number(
+        self, school_exam_data: pd.Series[Any], index: Hashable
+    ) -> int | None:
+        # Extract RSPO number from the current row
+        rspo = school_exam_data.loc[self.rspo_col_name]
+
+        if pd.isna(rspo):
+            self.skip_school(f"⚠️ RSPO number not found in row {index}.")
+            return None
+        return int(rspo)
+
+    def get_school(self, rspo: int) -> Szkola | None:
+        szkola = self._select_where(Szkola, Szkola.numer_rspo == rspo)
+        if not szkola:
+            self.skip_school(f"⚠️ School with RSPO {rspo} not found in database.")
+        return szkola
+
+    def skip_school(self, message: str):
+        logger.warning(f"{message} Skipping results for this row.")
+        self.skipped_schools += 1
+
+    def create_result_record(
+        self,
+        subject_exam_result: dict[str, int | float],
+        szkola: Szkola,
+        przedmiot: Przedmiot,
+        base: type[WynikBase | WynikEMExtra],
+        table: type[WynikE8 | WynikEM],
+    ) -> WynikE8 | WynikEM | None:
+        session = self._ensure_session()
+        try:
+            wynik_base = base.model_validate(subject_exam_result)
+        except ValidationError as e:
+            logger.error(
+                f"❌ Invalid subject data: {e}, School data: {subject_exam_result}"
+            )
+            return None
+        wynik = table(
+            szkola=szkola,
+            przedmiot=przedmiot,
+            **wynik_base.model_dump(),
+        )
+        session.add(wynik)
+        self.added_results += 1
+        return wynik
+
+    def create_results(
+        self, school_exam_data: pd.Series[Any], szkola: Szkola, rspo: int
+    ):
+        session = self._ensure_session()
+        for subject_name in self.unique_subjects:
+            przedmiot = self.get_subject(clean_column_name(subject_name))
+
+            subject_exam_result: dict[str, int | float] = (
+                school_exam_data.loc[subject_name]
+            ).to_dict()
+            subject_exam_result = {
+                clean_column_name(k): v for k, v in subject_exam_result.items()
+            }
+
+            match self.exam_type:
+                case ExamType.E8:
+                    wynik = self.create_result_record(
+                        subject_exam_result, szkola, przedmiot, WynikBase, WynikE8
+                    )
+                    if not wynik:
+                        continue
+                case ExamType.EM:
+                    wynik = self.create_result_record(
+                        subject_exam_result, szkola, przedmiot, WynikEMExtra, WynikEM
+                    )
+                    if not wynik:
+                        continue
+            session.commit()
+            session.refresh(wynik)
+            logger.info(f"💾 Added new exam result: {wynik.przedmiot} (RSPO: {rspo})")
+
     def split_exam_results(self):
         """
         Iterates through exam data, finds corresponding schools and subjects,
         creates WynikE8/WynikEM records, and adds them to the DB session.
         """
-        session = self._ensure_session()
         self.create_all_subjects()
         logger.info(
             f"📊 Starting processing of {self.exam_type} results for {len(self.exam_data)} schools..."
         )
-        processed_count = 0
-        skipped_schools = 0
-        added_results = 0
 
         for index, school_exam_data in self.exam_data.iterrows():  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+            school_exam_data: pd.Series[Any]
             try:
-                # Extract RSPO number from the current row
-                rspo = school_exam_data.loc[self.rspo_col_name]  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
-
-                if pd.isna(rspo):  # pyright: ignore[reportUnknownArgumentType]
-                    logger.warning(
-                        f"⚠️ Skipping row {index}: Invalid or missing RSPO '{rspo}'."
-                    )
-                    skipped_schools += 1
+                # Find School by RSPO
+                rspo = self.get_school_rspo_number(school_exam_data, index)
+                if not rspo:
                     continue
 
-                # Find School by RSPO
-                rspo = int(rspo)  # pyright: ignore[reportUnknownArgumentType]
-                szkola = self._select_where(Szkola, Szkola.numer_rspo == rspo)
-
+                szkola = self.get_school(rspo)
                 if not szkola:
-                    logger.warning(
-                        f"⚠️ School with RSPO {rspo} not found in database. Skipping results for row {index}."
-                    )
-                    skipped_schools += 1
                     continue
 
                 # Process results for each subject for this school
-                for subject_name in self.unique_subjects:
-                    przedmiot = self.get_subject(clean_column_name(subject_name))
+                self.create_results(school_exam_data, szkola, rspo)
 
-                    subject_exam_result: dict[str, int | float] = (  # pyright:  ignore[reportUnknownMemberType, reportUnknownVariableType]
-                        school_exam_data.loc[subject_name]  # pyright: ignore[reportUnknownMemberType]
-                    ).to_dict()
-                    subject_exam_result = {
-                        clean_column_name(k): v  # pyright: ignore[reportUnknownArgumentType]
-                        for k, v in subject_exam_result.items()  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
-                    }
-
-                    match self.exam_type:
-                        case ExamType.E8:
-                            try:
-                                wynik_base = WynikBase.model_validate(
-                                    subject_exam_result
-                                )
-                            except ValidationError as e:
-                                logger.error(
-                                    f"❌ Invalid subject data: {e}, School data: {subject_exam_result}"
-                                )
-                                continue
-                            wynik = WynikE8(
-                                szkola=szkola,
-                                przedmiot=przedmiot,
-                                **wynik_base.model_dump(),  # pyright: ignore[reportAny]
-                            )
-                            session.add(wynik)
-                            added_results += 1
-                        case ExamType.EM:  # TO DO, fix
-                            try:
-                                wynik_base = WynikEMExtra.model_validate(
-                                    subject_exam_result
-                                )
-                            except ValidationError as e:
-                                logger.error(
-                                    f"❌ Invalid subject data: {e}, School data: {subject_exam_result}"
-                                )
-                                continue
-                            wynik = WynikEM(
-                                szkola=szkola,
-                                przedmiot=przedmiot,
-                                **wynik_base.model_dump(),  # pyright: ignore[reportAny]
-                            )
-                            session.add(wynik)
-                            added_results += 1
-                    session.commit()
-                    session.refresh(wynik)
+                self.processed_count += 1
+                if self.processed_count % 100 == 0:  # Log progress periodically
                     logger.info(
-                        f"💾 Added new exam result: {wynik.przedmiot} (RSPO: {rspo})"
-                    )
-
-                processed_count += 1
-                if processed_count % 100 == 0:  # Log progress periodically
-                    logger.info(
-                        f"⏳ Processed {processed_count} schools... Added {added_results} results so far."
+                        f"⏳ Processed {self.processed_count} schools... Added {self.added_results} results so far."
                     )
 
             except Exception as e:
-                # Cast index to int for logging
-                logger.exception(
-                    f"📛 Unexpected error processing row {index} (RSPO Raw: {school_exam_data.loc[self.rspo_col_name]}): {e}"  # pyright: ignore[reportUnknownMemberType]
-                )
-                # Rollback transaction progress for this school on major error
-                session.rollback()
-                skipped_schools += (
+                logger.exception(f"📛 Unexpected error processing row {index}: {e}")
+                self.skipped_schools += (
                     1  # Count as skipped if major error occurs for the row
                 )
 
-        logger.info(f"✅ Successfully processed {processed_count} schools.")
-        logger.info(f"ℹ️ Added {added_results} new exam results to the session.")  # noqa: RUF001
+        logger.info(f"✅ Successfully processed {self.processed_count} schools.")
+        logger.info(f"ℹ️ Added {self.added_results} new exam results to the session.")  # noqa: RUF001
         logger.info(
-            f"ℹ️ Skipped {skipped_schools} schools due to missing/invalid RSPO, school not found in DB, or row processing error."  # noqa: RUF001
+            f"ℹ️ Skipped {self.skipped_schools} schools due to missing/invalid RSPO, school not found in DB, or row processing error."  # noqa: RUF001
         )
