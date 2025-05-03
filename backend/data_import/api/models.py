@@ -5,6 +5,7 @@ from sqlmodel import SQLModel
 
 from app.models.schools import (
     EtapEdukacjiBase,
+    KategoriaUczniowBase,
     StatusPublicznoprawnyBase,
     SzkolaExtendedData,
     TypSzkolyBase,
@@ -34,6 +35,8 @@ class SzkolaAPIResponse(SzkolaExtendedData):
     miejscowosc_kod_TERYT: str  # noqa: N815
     ulica: str | None
     ulica_kod_TERYT: str | None  # noqa: N815
+    ksztalcenie_zawodowe: dict[str, str] | None
+    kategoria_uczniow: KategoriaUczniowBase
 
     @model_validator(mode="before")
     @classmethod
@@ -44,7 +47,7 @@ class SzkolaAPIResponse(SzkolaExtendedData):
 
         # Convert empty strings to None for all fields
         for field_name, field_value in list(cast(SchoolDict, data).items()):
-            if field_value == "":
+            if not field_value:  # "" or [] / any other empty value
                 data[field_name] = None
 
         return cast(T, data)

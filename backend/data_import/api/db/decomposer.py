@@ -6,6 +6,9 @@ from app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
 from app.models.schools import (
     EtapEdukacji,
     EtapEdukacjiBase,
+    KategoriaUczniow,
+    KategoriaUczniowBase,
+    KsztalcenieZawodowe,
     StatusPublicznoprawny,
     StatusPublicznoprawnyBase,
     Szkola,
@@ -32,6 +35,8 @@ class Decomposer(DatabaseManagerBase):
         self.typy_cache: dict[str, TypSzkoly] = {}
         self.statusy_cache: dict[str, StatusPublicznoprawny] = {}
         self.etapy_edukacji_cache: dict[str, EtapEdukacji] = {}
+        self.kategorie_uczniow_cache: dict[str, KategoriaUczniow] = {}
+        self.ksztalcenie_zawodowe_cache: dict[str, KsztalcenieZawodowe] = {}
 
     def _get_or_create_wojewodztwo(self, nazwa: str, teryt: str) -> Wojewodztwo:
         """Get or create a voivodeship record"""
@@ -144,6 +149,39 @@ class Decomposer(DatabaseManagerBase):
         self.statusy_cache[nazwa] = status_szkoly
         return status_szkoly
 
+    def _get_or_create_kategoria_uczniow(
+        self, kategoria: KategoriaUczniowBase
+    ) -> KategoriaUczniow:
+        """Get or create a student category record"""
+        nazwa = kategoria.nazwa
+        if nazwa in self.kategorie_uczniow_cache:
+            return self.kategorie_uczniow_cache[nazwa]
+
+        kategoria_uczniow = self._select_where(
+            KategoriaUczniow, KategoriaUczniow.nazwa == nazwa
+        )
+
+        if not kategoria_uczniow:
+            kategoria_uczniow = KategoriaUczniow.model_validate(kategoria)
+
+        self.kategorie_uczniow_cache[nazwa] = kategoria_uczniow
+        return kategoria_uczniow
+
+    def _get_or_create_ksztalcenie_zawodowe(self, nazwa: str) -> KsztalcenieZawodowe:
+        """Get or create a vocational training record"""
+        if nazwa in self.ksztalcenie_zawodowe_cache:
+            return self.ksztalcenie_zawodowe_cache[nazwa]
+
+        ksztalcenie_zawodowe = self._select_where(
+            KsztalcenieZawodowe, KsztalcenieZawodowe.nazwa == nazwa
+        )
+
+        if not ksztalcenie_zawodowe:
+            ksztalcenie_zawodowe = KsztalcenieZawodowe(nazwa=nazwa)
+
+        self.ksztalcenie_zawodowe_cache[nazwa] = ksztalcenie_zawodowe
+        return ksztalcenie_zawodowe
+
     def _get_or_create_etap_edukacji(self, etap_data: EtapEdukacjiBase) -> EtapEdukacji:
         """Get or create an education stage record"""
         nazwa = etap_data.nazwa
@@ -194,13 +232,30 @@ class Decomposer(DatabaseManagerBase):
 
         return miejscowosc, ulica
 
-    def _process_school_type_data(
+    def _process_school_other_information(
         self, school_data: SzkolaAPIResponse
-    ) -> tuple[TypSzkoly, StatusPublicznoprawny]:
+    ) -> tuple[TypSzkoly, StatusPublicznoprawny, KategoriaUczniow]:
         """Process school type and status data"""
         typ = self._get_or_create_typ_szkoly(typ=school_data.typ)
         status = self._get_or_create_status(status=school_data.status_publiczno_prawny)
-        return typ, status
+        students_category = self._get_or_create_kategoria_uczniow(
+            kategoria=school_data.kategoria_uczniow
+        )
+        return typ, status, students_category
+
+    def _process_vocational_training_data(
+        self, school_data: SzkolaAPIResponse
+    ) -> list[KsztalcenieZawodowe]:
+        """Process vocational training data"""
+        if not school_data.ksztalcenie_zawodowe:
+            return []
+
+        ksztalcenie_zawodowe: list[KsztalcenieZawodowe] = []
+        for value in school_data.ksztalcenie_zawodowe.values():
+            ksztalcenie = self._get_or_create_ksztalcenie_zawodowe(nazwa=value)
+            ksztalcenie_zawodowe.append(ksztalcenie)
+
+        return ksztalcenie_zawodowe
 
     def _process_education_stages(
         self, school_data: SzkolaAPIResponse
@@ -231,6 +286,8 @@ class Decomposer(DatabaseManagerBase):
         miejscowosc: Miejscowosc,
         ulica: Ulica | None,
         etapy: list[EtapEdukacji],
+        ksztalcenie_zawodowe: list[KsztalcenieZawodowe],
+        kategoria_uczniow: KategoriaUczniow,
     ) -> Szkola:
         """Create a new school object from validated data"""
         geolokalizacja = school_data.geolokalizacja
@@ -250,6 +307,8 @@ class Decomposer(DatabaseManagerBase):
             miejscowosc=miejscowosc,
             ulica=ulica,
             etapy_edukacji=etapy,
+            ksztalcenie_zawodowe=ksztalcenie_zawodowe,
+            kategoria_uczniow=kategoria_uczniow,
         )
 
         return new_school
@@ -280,14 +339,26 @@ class Decomposer(DatabaseManagerBase):
             miejscowosc, ulica = self._process_location_data(school)
 
             # Process school type and status
-            typ, status = self._process_school_type_data(school)
+            typ, status, kategoria_uczniow = self._process_school_other_information(
+                school
+            )
+
+            # process vocational training
+            ksztalcenie_zawodowe = self._process_vocational_training_data(school)
 
             # Process education stages
             etapy = self._process_education_stages(school)
 
             # Create and save new school
             new_school = self._create_school_object(
-                school, typ, status, miejscowosc, ulica, etapy
+                school,
+                typ,
+                status,
+                miejscowosc,
+                ulica,
+                etapy,
+                ksztalcenie_zawodowe,
+                kategoria_uczniow,
             )
 
             session.add(new_school)
