@@ -1,7 +1,10 @@
-# pyright: reportExplicitAny=false, reportAny=false
+# pyright: reportUnknownParameterType = false
+# pyright: reportUnknownMemberType = false
+# pyright: reportUnknownVariableType = false
+# pyright: reportMissingTypeArgument = false
+# pyright: reportUnknownArgumentType = false
 import logging
 from collections.abc import Hashable
-from typing import Any
 
 import pandas as pd
 from pydantic import ValidationError
@@ -106,7 +109,7 @@ class TableSplitter(DatabaseManagerBase):
             self.create_subject(clean_column_name(subject_name))
 
     def get_school_rspo_number(
-        self, school_exam_data: pd.Series[Any], index: Hashable
+        self, school_exam_data: pd.Series, index: Hashable
     ) -> int | None:
         # Extract RSPO number from the current row
         rspo = school_exam_data.loc[self.rspo_col_name]
@@ -145,15 +148,13 @@ class TableSplitter(DatabaseManagerBase):
         wynik = table(
             szkola=szkola,
             przedmiot=przedmiot,
-            **wynik_base.model_dump(),
+            **wynik_base.model_dump(),  # pyright: ignore[reportAny]
         )
         session.add(wynik)
         self.added_results += 1
         return wynik
 
-    def create_results(
-        self, school_exam_data: pd.Series[Any], szkola: Szkola, rspo: int
-    ):
+    def create_results(self, school_exam_data: pd.Series, szkola: Szkola, rspo: int):
         session = self._ensure_session()
         for subject_name in self.unique_subjects:
             przedmiot = self.get_subject(clean_column_name(subject_name))
@@ -192,8 +193,8 @@ class TableSplitter(DatabaseManagerBase):
             f"📊 Starting processing of {self.exam_type} results for {len(self.exam_data)} schools..."
         )
 
-        for index, school_exam_data in self.exam_data.iterrows():  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
-            school_exam_data: pd.Series[Any]
+        for index, school_exam_data in self.exam_data.iterrows():
+            school_exam_data: pd.Series
             try:
                 # Find School by RSPO
                 rspo = self.get_school_rspo_number(school_exam_data, index)
