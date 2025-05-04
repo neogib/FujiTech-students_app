@@ -81,11 +81,12 @@ def api_importer():
 
 def excel_importer():
     reader = ExcelReader()
-    for year, exam_data in reader.load_files(ExamType.E8):
-        with TableSplitter(exam_data, ExamType.E8, year) as splitter:
-            if not splitter.initialize():
-                continue  # skip this file - it was invalid
-            splitter.split_exam_results()
+    for exam_type in ExamType:
+        for year, exam_data in reader.load_files(exam_type):
+            with TableSplitter(exam_data, exam_type, year) as splitter:
+                if not splitter.initialize():
+                    continue  # skip this file - it was invalid
+                splitter.split_exam_results()
 
 
 def main():

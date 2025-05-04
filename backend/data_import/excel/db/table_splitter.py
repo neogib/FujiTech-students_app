@@ -80,9 +80,13 @@ class TableSplitter(DatabaseManagerBase):
         for col in self.exam_data.columns:
             # Check if it's a tuple (multi-index) and not unnamed/metadata column which can be skipped
             if isinstance(col, tuple) and len(col) > 1:
+                valid_col = True
                 for col_prefix in ExcelFile.SPECIAL_COLUMN_START:
                     if col_prefix in col[0]:
-                        continue
+                        valid_col = False
+                        break
+                if not valid_col:
+                    continue
                 self.unique_subjects.add(str(col[0]))
 
         logger.info(f"ℹ️ Identified subjects: {self.unique_subjects}")  # noqa: RUF001
@@ -115,7 +119,7 @@ class TableSplitter(DatabaseManagerBase):
         self, school_exam_data: pd.Series, index: Hashable
     ) -> int | None:
         # Extract RSPO number from the current row
-        rspo = school_exam_data.loc[self.rspo_col_name]
+        rspo = school_exam_data.at[self.rspo_col_name]
 
         if pd.isna(rspo):
             self.skip_school(f"⚠️ RSPO number not found in row {index}.")

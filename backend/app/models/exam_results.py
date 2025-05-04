@@ -38,15 +38,15 @@ class WynikCommon(WynikBase):
     rok: int = Field(index=True)
 
 
-class WynikE8(WynikCommon, table=True):
-    __tablename__: str = "wyniki_e8"  # pyright: ignore[reportIncompatibleVariableOverride]
+class WynikE8(WynikCommon, WynikE8Extra, table=True):
+    __tablename__: str = "wynik_e8"  # pyright: ignore[reportIncompatibleVariableOverride]
     id: int | None = Field(default=None, primary_key=True)
     przedmiot: Przedmiot = Relationship(back_populates="wyniki_e8")  # pyright: ignore[reportAny]
     szkola: "Szkola" = Relationship(back_populates="wyniki_e8")  # pyright: ignore[reportAny]
 
 
 class WynikEM(WynikCommon, WynikEMExtra, table=True):
-    __tablename__: str = "wyniki_em"  # pyright: ignore[reportIncompatibleVariableOverride]
+    __tablename__: str = "wynik_em"  # pyright: ignore[reportIncompatibleVariableOverride]
     id: int | None = Field(default=None, primary_key=True)
     przedmiot: Przedmiot = Relationship(back_populates="wyniki_em")  # pyright: ignore[reportAny]
     szkola: "Szkola" = Relationship(back_populates="wyniki_em")  # pyright: ignore[reportAny]
