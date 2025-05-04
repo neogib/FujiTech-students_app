@@ -11,9 +11,15 @@ from pydantic import ValidationError
 from sqlalchemy import Engine
 from sqlmodel import Session
 
-from app.models.exam_results import Przedmiot, WynikBase, WynikE8, WynikEM, WynikEMExtra
+from app.models.exam_results import (
+    Przedmiot,
+    WynikE8,
+    WynikE8Extra,
+    WynikEM,
+    WynikEMExtra,
+)
 from app.models.schools import Szkola
-from data_import.core.config import ExamType
+from data_import.core.config import ExamType, ExcelFile
 from data_import.utils.clean_column_names import clean_column_name
 from data_import.utils.db.session import DatabaseManagerBase
 
@@ -56,7 +62,8 @@ class TableSplitter(DatabaseManagerBase):
         rspo_cols = [
             col
             for col in self.exam_data.columns
-            if isinstance(col, tuple) and "RSPO" in col
+            if isinstance(col, tuple)
+            and "RSPO" in col[1]  # RSPO is in the second part of the tuple
         ]
         if len(rspo_cols) != 1:
             raise ValueError("Exactly one column with 'RSPO' in its name is expected.")
@@ -72,11 +79,10 @@ class TableSplitter(DatabaseManagerBase):
         # Iterate through columns to find subjects (assuming they are level 0 of multi-index)
         for col in self.exam_data.columns:
             # Check if it's a tuple (multi-index) and not unnamed/metadata column which can be skipped
-            if (
-                isinstance(col, tuple)
-                and len(col) > 1
-                and not str(col[0]).startswith("Unnamed")
-            ):
+            if isinstance(col, tuple) and len(col) > 1:
+                for col_prefix in ExcelFile.SPECIAL_COLUMN_START:
+                    if col_prefix in col[0]:
+                        continue
                 self.unique_subjects.add(str(col[0]))
 
         logger.info(f"ℹ️ Identified subjects: {self.unique_subjects}")  # noqa: RUF001
@@ -126,10 +132,16 @@ class TableSplitter(DatabaseManagerBase):
         logger.warning(f"{message} Skipping results for this row.")
         self.skipped_schools += 1
 
-    def _validate_enough_data(self, wynik: WynikBase | WynikEMExtra) -> bool:
+    def _validate_enough_data(self, wynik: WynikE8Extra | WynikEMExtra) -> bool:
+        # the columns differ in different exam types
+        sredni_wynik: float | None = (
+            wynik.sredni_wynik
+            if isinstance(wynik, WynikEMExtra)
+            else wynik.wynik_sredni
+        )
         if not wynik.liczba_zdajacych:
             return False
-        if not (wynik.wynik_sredni or wynik.mediana):
+        if not (sredni_wynik or wynik.mediana):
             return False
         return True
 
@@ -138,7 +150,7 @@ class TableSplitter(DatabaseManagerBase):
         subject_exam_result: dict[str, int | float | None],
         szkola: Szkola,
         przedmiot: Przedmiot,
-        base: type[WynikBase | WynikEMExtra],
+        base: type[WynikE8Extra | WynikEMExtra],
         table: type[WynikE8 | WynikEM],
     ) -> WynikE8 | WynikEM | None:
         session = self._ensure_session()
@@ -146,7 +158,7 @@ class TableSplitter(DatabaseManagerBase):
             wynik_base = base.model_validate(subject_exam_result)
         except ValidationError as e:
             logger.error(
-                f"❌ Invalid subject data: {e}, School data: {subject_exam_result}"
+                f"❌ Invalid subject data: {e}, subject data: {subject_exam_result}, school rspo: {szkola.numer_rspo}, przedmiot: {przedmiot.nazwa}"
             )
             return None
         if not self._validate_enough_data(wynik_base):
@@ -174,14 +186,14 @@ class TableSplitter(DatabaseManagerBase):
             ).to_dict()
             # change numpy NaN values to None and clean column names
             subject_exam_result = {
-                clean_column_name(k): v if pd.notna(v) else None
+                clean_column_name(k): (v if pd.notna(v) else None)
                 for k, v in subject_exam_result.items()
             }
 
             match self.exam_type:
                 case ExamType.E8:
                     wynik = self.create_result_record(
-                        subject_exam_result, szkola, przedmiot, WynikBase, WynikE8
+                        subject_exam_result, szkola, przedmiot, WynikE8Extra, WynikE8
                     )
                 case ExamType.EM:
                     wynik = self.create_result_record(

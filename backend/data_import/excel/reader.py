@@ -33,6 +33,7 @@ class ExcelReader:
                 file_path,
                 sheet_name=ExcelFile.SHEET_NAME,
                 header=exam_type.header,
+                skiprows=exam_type.skiprows,
             )
             file_number = int(file_name.split(".")[0])
             yield file_number, df

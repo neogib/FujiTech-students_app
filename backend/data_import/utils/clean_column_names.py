@@ -4,19 +4,23 @@ from unidecode import unidecode
 
 
 def clean_column_name(name: str) -> str:
-    # Remove polish letters
+    # Normalize accented characters to ASCII
     name = unidecode(name)
 
-    # Remove percentage signs and parentheses
-    name = re.sub(r"[%()]", "", name)
+    # Remove any parenthesized content (including the parentheses)
+    name = re.sub(r"\([^)]*\)", "", name)
 
-    # Remove leading and trailing whitespace
+    # Remove percentage signs and asterisks
+    name = re.sub(r"[*%]", "", name)
+
+    # Strip leading/trailing whitespace
     name = name.strip()
 
-    # Replace whitespace with underscores
+    # Replace forward slashes with underscores
+    name = name.replace("/", "_")
+
+    # Collapse any remaining whitespace into single underscores
     name = re.sub(r"\s+", "_", name)
 
-    # Convert to lowercase
-    name = name.lower()
-
-    return name
+    # Convert everything to lowercase
+    return name.lower()

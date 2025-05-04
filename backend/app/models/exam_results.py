@@ -16,15 +16,20 @@ class Przedmiot(PrzedmiotBase, table=True):
     wyniki_em: list["WynikEM"] = Relationship(back_populates="przedmiot")  # pyright: ignore[reportAny]
 
 
+# Columns that default to None don't always exist in excel files
 class WynikBase(SQLModel):
     liczba_zdajacych: int | None
+    mediana: float | None = None
+
+
+class WynikE8Extra(WynikBase):
     wynik_sredni: float | None
-    mediana: float | None
 
 
 class WynikEMExtra(WynikBase):
-    zdawalnosc: float | None
-    liczba_laueratow_finalistow: int | None
+    sredni_wynik: float | None
+    zdawalnosc: float | None = None
+    liczba_laureatow_finalistow: int | None = None
 
 
 class WynikCommon(WynikBase):
