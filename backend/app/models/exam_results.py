@@ -30,6 +30,7 @@ class WynikEMExtra(WynikBase):
 class WynikCommon(WynikBase):
     szkola_id: int = Field(index=True, foreign_key="szkola.id")
     przedmiot_id: int = Field(index=True, foreign_key="przedmiot.id")
+    rok: int = Field(index=True)
 
 
 class WynikE8(WynikCommon, table=True):

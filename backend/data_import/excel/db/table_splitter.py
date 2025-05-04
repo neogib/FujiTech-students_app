@@ -27,15 +27,17 @@ class TableSplitter(DatabaseManagerBase):
     rspo_col_name: tuple[str, str] = ("", "")
     unique_subjects: set[str]
     exam_type: ExamType
+    year: int
     przedmioty_cache: dict[str, Przedmiot]
     processed_count: int = 0
     skipped_schools: int = 0
     added_results: int = 0
 
-    def __init__(self, exam_data: pd.DataFrame, exam_type: ExamType):
+    def __init__(self, exam_data: pd.DataFrame, exam_type: ExamType, year: int):
         super().__init__()
         self.exam_data = exam_data
         self.exam_type = exam_type
+        self.year = year
         self.unique_subjects = set()
         self.przedmioty_cache = {}
 
@@ -155,6 +157,7 @@ class TableSplitter(DatabaseManagerBase):
         wynik = table(
             szkola=szkola,
             przedmiot=przedmiot,
+            rok=self.year,
             **wynik_base.model_dump(),  # pyright: ignore[reportAny]
         )
         session.add(wynik)
