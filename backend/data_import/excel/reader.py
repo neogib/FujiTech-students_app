@@ -24,7 +24,7 @@ class ExcelReader:
             self.base_data_path = base_data_path
 
     def read_files_from_dir(
-        self, directory_path: Path
+        self, directory_path: Path, exam_type: ExamType
     ) -> Iterator[tuple[int, pd.DataFrame]]:
         for file_path in directory_path.glob("*.xlsx"):
             file_name = file_path.name
@@ -32,20 +32,18 @@ class ExcelReader:
             df = pd.read_excel(  # pyright: ignore[reportUnknownMemberType]
                 file_path,
                 sheet_name=ExcelFile.SHEET_NAME,
-                header=ExcelFile.HEADER,
+                header=exam_type.header,
             )
             file_number = int(file_name.split(".")[0])
             yield file_number, df
 
-    def load_files(
-        self, directory_type: ExamType
-    ) -> Iterator[tuple[int, pd.DataFrame]]:
+    def load_files(self, exam_type: ExamType) -> Iterator[tuple[int, pd.DataFrame]]:
         """
         Loads Excel files from E8 or EM directories
         """
-        target_dir = directory_type.value
+        target_dir = exam_type.directory_name
         path = self.base_data_path / target_dir
         logger.info(f"Loading data from {path}")
-        yield from self.read_files_from_dir(path)
+        yield from self.read_files_from_dir(path, exam_type)
 
         logger.info(f"Finished reading files from {path}")

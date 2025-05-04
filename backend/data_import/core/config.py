@@ -5,7 +5,7 @@ from typing import ClassVar, final
 class APISettings:
     API_SCHOOLS_URL: str = "https://api-rspo.men.gov.pl/api/placowki/"
     HEADERS: ClassVar[dict[str, str]] = {"accept": "application/ld+json"}
-    START_PAGE: int = 1
+    START_PAGE: int = 41
     PAGE_LIMIT: int | None = None  # the last page to fetch, if None there is no limit
     MAX_SCHOOLS_SEGMENT: int = 1000
 
@@ -23,11 +23,16 @@ class TIMEOUT:
 
 @final
 class ExamType(Enum):
-    E8 = "E8_data"
-    EM = "EM_data"
+    "Directories for E8 and EM data and their headers"
+
+    E8 = ("E8_data", [0, 1])
+    EM = ("EM_data", [0, 1, 2])
+
+    def __init__(self, directory_name: str, header: list[int]):
+        self.directory_name = directory_name
+        self.header = header
 
 
 @final
 class ExcelFile:
     SHEET_NAME = "SAS"
-    HEADER: ClassVar[list[int]] = [0, 1]
