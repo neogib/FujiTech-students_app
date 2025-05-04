@@ -103,11 +103,6 @@ class TableSplitter(DatabaseManagerBase):
         przedmiot = Przedmiot(nazwa=subject_name)
         self.przedmioty_cache[subject_name] = przedmiot
 
-    def create_all_subjects(self):
-        """Creates Przedmiot records for all unique subjects."""
-        for subject_name in self.unique_subjects:
-            self.create_subject(clean_column_name(subject_name))
-
     def get_school_rspo_number(
         self, school_exam_data: pd.Series, index: Hashable
     ) -> int | None:
@@ -129,9 +124,16 @@ class TableSplitter(DatabaseManagerBase):
         logger.warning(f"{message} Skipping results for this row.")
         self.skipped_schools += 1
 
+    def _validate_enough_data(self, wynik: WynikBase | WynikEMExtra) -> bool:
+        if not wynik.liczba_zdajacych:
+            return False
+        if not (wynik.wynik_sredni or wynik.mediana):
+            return False
+        return True
+
     def create_result_record(
         self,
-        subject_exam_result: dict[str, int | float],
+        subject_exam_result: dict[str, int | float | None],
         szkola: Szkola,
         przedmiot: Przedmiot,
         base: type[WynikBase | WynikEMExtra],
@@ -143,6 +145,11 @@ class TableSplitter(DatabaseManagerBase):
         except ValidationError as e:
             logger.error(
                 f"❌ Invalid subject data: {e}, School data: {subject_exam_result}"
+            )
+            return None
+        if not self._validate_enough_data(wynik_base):
+            logger.warning(
+                f"⚠️ Not enough data to create a result record. Skipping. Subject data: {subject_exam_result}, subject: {przedmiot}"
             )
             return None
         wynik = table(
@@ -159,11 +166,13 @@ class TableSplitter(DatabaseManagerBase):
         for subject_name in self.unique_subjects:
             przedmiot = self.get_subject(clean_column_name(subject_name))
 
-            subject_exam_result: dict[str, int | float] = (
+            subject_exam_result: dict[str, int | float | None] = (
                 school_exam_data.loc[subject_name]
             ).to_dict()
+            # change numpy NaN values to None and clean column names
             subject_exam_result = {
-                clean_column_name(k): v for k, v in subject_exam_result.items()
+                clean_column_name(k): v if pd.notna(v) else None
+                for k, v in subject_exam_result.items()
             }
 
             match self.exam_type:
@@ -171,14 +180,12 @@ class TableSplitter(DatabaseManagerBase):
                     wynik = self.create_result_record(
                         subject_exam_result, szkola, przedmiot, WynikBase, WynikE8
                     )
-                    if not wynik:
-                        continue
                 case ExamType.EM:
                     wynik = self.create_result_record(
                         subject_exam_result, szkola, przedmiot, WynikEMExtra, WynikEM
                     )
-                    if not wynik:
-                        continue
+            if not wynik:
+                continue  # there was a ValidationError, move on
             session.commit()
             session.refresh(wynik)
             logger.info(f"💾 Added new exam result: {wynik.przedmiot} (RSPO: {rspo})")
@@ -188,7 +195,6 @@ class TableSplitter(DatabaseManagerBase):
         Iterates through exam data, finds corresponding schools and subjects,
         creates WynikE8/WynikEM records, and adds them to the DB session.
         """
-        self.create_all_subjects()
         logger.info(
             f"📊 Starting processing of {self.exam_type} results for {len(self.exam_data)} schools..."
         )
