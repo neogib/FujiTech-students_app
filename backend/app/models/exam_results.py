@@ -18,7 +18,7 @@ class Przedmiot(PrzedmiotBase, table=True):
 
 # Columns that default to None don't always exist in excel files
 class WynikBase(SQLModel):
-    liczba_zdajacych: int | None
+    liczba_zdajacych: int
     mediana: float | None = None
 
 

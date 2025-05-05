@@ -4,9 +4,10 @@ from app.core.database import create_db_and_tables
 from data_import.api.db.decomposer import Decomposer
 from data_import.api.exceptions import SchoolsDataError
 from data_import.api.fetcher import SchoolsAPIFetcher
-from data_import.core.config import APISettings, ExamType
+from data_import.core.config import APISettings, ExamType, Score
 from data_import.excel.db.table_splitter import TableSplitter
 from data_import.excel.reader import ExcelReader
+from data_import.score.scorer import Scorer
 
 logger = logging.getLogger(__name__)
 
@@ -89,14 +90,22 @@ def excel_importer():
                 splitter.split_exam_results()
 
 
+def update_scoring():
+    with Scorer(Score.SUBJECT_WEIGHTS_E8) as scorer:
+        scorer.initalize_required_data()
+
+
 def main():
     configure_logging()
-    # logger.info("🛠️ Creating database and tables...")
+    logger.info("🛠️ Creating database and tables...")
     create_db_and_tables()
 
     logger.info("📥 Starting segmented schools data import...")
     # api_importer()
-    excel_importer()
+    # excel_importer()
+
+    logger.info("📊 Starting score calculation...")
+    update_scoring()
 
 
 if __name__ == "__main__":

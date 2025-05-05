@@ -38,3 +38,13 @@ class ExamType(Enum):
 class ExcelFile:
     SHEET_NAME = "SAS"
     SPECIAL_COLUMN_START = ("Unnamed", "dla")
+
+
+@final
+class Score:
+    NUM_YEARS: int = 4
+    SUBJECT_WEIGHTS_E8: ClassVar[dict[str, float]] = {
+        "jezyk_polski": 0.3,
+        "matematyka": 0.4,
+        "jezyk_angielski": 0.3,
+    }
