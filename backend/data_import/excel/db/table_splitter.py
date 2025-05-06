@@ -8,8 +8,6 @@ from collections.abc import Hashable
 
 import pandas as pd
 from pydantic import ValidationError
-from sqlalchemy import Engine
-from sqlmodel import Session
 
 from app.models.exam_results import (
     Przedmiot,
@@ -27,14 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 class TableSplitter(DatabaseManagerBase):
-    engine: Engine
-    session: Session | None
     exam_data: pd.DataFrame
     rspo_col_name: tuple[str, str] = ("", "")
     unique_subjects: set[str]
     exam_type: ExamType
     year: int
-    przedmioty_cache: dict[str, Przedmiot]
+    subjects_cache: dict[str, Przedmiot]
     processed_count: int = 0
     skipped_schools: int = 0
     added_results: int = 0
@@ -45,7 +41,7 @@ class TableSplitter(DatabaseManagerBase):
         self.exam_type = exam_type
         self.year = year
         self.unique_subjects = set()
-        self.przedmioty_cache = {}
+        self.subjects_cache = {}
 
     def initialize(self) -> bool:
         """Perform initialization and validation steps.
@@ -97,23 +93,23 @@ class TableSplitter(DatabaseManagerBase):
 
     def get_subject(self, subject_name: str) -> Przedmiot:
         """Gets a Przedmiot record in the database. If it does not exist, creates it."""
-        if subject_name in self.przedmioty_cache:
-            return self.przedmioty_cache[subject_name]
+        if subject_name in self.subjects_cache:
+            return self.subjects_cache[subject_name]
 
-        przedmiot = self._select_where(Przedmiot, Przedmiot.nazwa == subject_name)
-        if przedmiot:
-            self.przedmioty_cache[subject_name] = przedmiot
-            return przedmiot
+        subject = self._select_where(Przedmiot, Przedmiot.nazwa == subject_name)
+        if subject:
+            self.subjects_cache[subject_name] = subject
+            return subject
 
         # no record found
         self.create_subject(subject_name)
-        return self.przedmioty_cache[subject_name]
+        return self.subjects_cache[subject_name]
 
     def create_subject(self, subject_name: str):
         """Creates a Przedmiot record in the database."""
         logger.info(f"➕ Creating new Przedmiot: {subject_name}")  # noqa: RUF001
-        przedmiot = Przedmiot(nazwa=subject_name)
-        self.przedmioty_cache[subject_name] = przedmiot
+        subject = Przedmiot(nazwa=subject_name)
+        self.subjects_cache[subject_name] = subject
 
     def get_school_rspo_number(
         self, school_exam_data: pd.Series, index: Hashable
@@ -127,63 +123,63 @@ class TableSplitter(DatabaseManagerBase):
         return int(rspo)
 
     def get_school(self, rspo: int) -> Szkola | None:
-        szkola = self._select_where(Szkola, Szkola.numer_rspo == rspo)
-        if not szkola:
+        school = self._select_where(Szkola, Szkola.numer_rspo == rspo)
+        if not school:
             self.skip_school(f"⚠️ School with RSPO {rspo} not found in database.")
-        return szkola
+        return school
 
     def skip_school(self, message: str):
         logger.warning(f"{message} Skipping results for this row.")
         self.skipped_schools += 1
 
-    def _validate_enough_data(self, wynik: WynikE8Extra | WynikEMExtra) -> bool:
+    def _validate_enough_data(self, result: WynikE8Extra | WynikEMExtra) -> bool:
         # the columns differ in different exam types
-        sredni_wynik: float | None = (
-            wynik.sredni_wynik
-            if isinstance(wynik, WynikEMExtra)
-            else wynik.wynik_sredni
+        average_score: float | None = (
+            result.sredni_wynik
+            if isinstance(result, WynikEMExtra)
+            else result.wynik_sredni
         )
-        if not wynik.liczba_zdajacych:
+        if not result.liczba_zdajacych:
             return False
-        if not (sredni_wynik or wynik.mediana):
+        if not (average_score or result.mediana):
             return False
         return True
 
     def create_result_record(
         self,
         subject_exam_result: dict[str, int | float | None],
-        szkola: Szkola,
-        przedmiot: Przedmiot,
+        school: Szkola,
+        subject: Przedmiot,
         base: type[WynikE8Extra | WynikEMExtra],
         table: type[WynikE8 | WynikEM],
     ) -> WynikE8 | WynikEM | None:
         session = self._ensure_session()
         try:
-            wynik_base = base.model_validate(subject_exam_result)
+            result_base = base.model_validate(subject_exam_result)
         except ValidationError as e:
             logger.error(
-                f"❌ Invalid subject data: {e}, subject data: {subject_exam_result}, school rspo: {szkola.numer_rspo}, przedmiot: {przedmiot.nazwa}"
+                f"❌ Invalid subject data: {e}, subject data: {subject_exam_result}, school rspo: {school.numer_rspo}, przedmiot: {subject.nazwa}"
             )
             return None
-        if not self._validate_enough_data(wynik_base):
+        if not self._validate_enough_data(result_base):
             logger.warning(
-                f"⚠️ Not enough data to create a result record. Skipping. Subject data: {subject_exam_result}, subject: {przedmiot}"
+                f"⚠️ Not enough data to create a result record. Skipping. Subject data: {subject_exam_result}, subject: {subject}"
             )
             return None
-        wynik = table(
-            szkola=szkola,
-            przedmiot=przedmiot,
+        result = table(
+            szkola=school,
+            przedmiot=subject,
             rok=self.year,
-            **wynik_base.model_dump(),  # pyright: ignore[reportAny]
+            **result_base.model_dump(),  # pyright: ignore[reportAny]
         )
-        session.add(wynik)
+        session.add(result)
         self.added_results += 1
-        return wynik
+        return result
 
     def create_results(self, school_exam_data: pd.Series, szkola: Szkola, rspo: int):
         session = self._ensure_session()
         for subject_name in self.unique_subjects:
-            przedmiot = self.get_subject(clean_column_name(subject_name))
+            subject = self.get_subject(clean_column_name(subject_name))
 
             subject_exam_result: dict[str, int | float | None] = (
                 school_exam_data.loc[subject_name]
@@ -196,18 +192,18 @@ class TableSplitter(DatabaseManagerBase):
 
             match self.exam_type:
                 case ExamType.E8:
-                    wynik = self.create_result_record(
-                        subject_exam_result, szkola, przedmiot, WynikE8Extra, WynikE8
+                    result = self.create_result_record(
+                        subject_exam_result, szkola, subject, WynikE8Extra, WynikE8
                     )
                 case ExamType.EM:
-                    wynik = self.create_result_record(
-                        subject_exam_result, szkola, przedmiot, WynikEMExtra, WynikEM
+                    result = self.create_result_record(
+                        subject_exam_result, szkola, subject, WynikEMExtra, WynikEM
                     )
-            if not wynik:
+            if not result:
                 continue  # there was a ValidationError, move on
             session.commit()
-            session.refresh(wynik)
-            logger.info(f"💾 Added new exam result: {wynik.przedmiot} (RSPO: {rspo})")
+            session.refresh(result)
+            logger.info(f"💾 Added new exam result: {result.przedmiot} (RSPO: {rspo})")
 
     def split_exam_results(self):
         """
@@ -226,12 +222,12 @@ class TableSplitter(DatabaseManagerBase):
                 if not rspo:
                     continue
 
-                szkola = self.get_school(rspo)
-                if not szkola:
+                school = self.get_school(rspo)
+                if not school:
                     continue
 
                 # Process results for each subject for this school
-                self.create_results(school_exam_data, szkola, rspo)
+                self.create_results(school_exam_data, school, rspo)
 
                 self.processed_count += 1
                 if self.processed_count % 100 == 0:  # Log progress periodically
