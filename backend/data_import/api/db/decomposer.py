@@ -31,99 +31,44 @@ class Decomposer(DatabaseManagerBase):
         self.counties_cache: dict[str, Powiat] = {}
         self.boroughs_cache: dict[str, Gmina] = {}
         self.localities_cache: dict[str, Miejscowosc] = {}
-        self.streets_cache: dict[str, Ulica | None] = {}
+        self.streets_cache: dict[str, Ulica] = {}
         self.school_types_cache: dict[str, TypSzkoly] = {}
         self.statuses_cache: dict[str, StatusPublicznoprawny] = {}
         self.education_stages_cache: dict[str, EtapEdukacji] = {}
         self.student_categories_cache: dict[str, KategoriaUczniow] = {}
         self.vocational_trainings_cache: dict[str, KsztalcenieZawodowe] = {}
 
-    def _get_or_create_voivodeship(
-        self, name: str, territorial_code: str
-    ) -> Wojewodztwo:
-        """Get or create a voivodeship record"""
-        cache_key = f"{name}_{territorial_code}"
-        if cache_key in self.voivodeships_cache:
-            return self.voivodeships_cache[cache_key]
+    def _get_or_create_entity[T: (Wojewodztwo, Powiat, Gmina, Miejscowosc, Ulica)](
+        self,
+        model_class: type[T],
+        name: str,
+        territorial_code: str,
+        cache_dict: dict[str, T],
+        **kwargs: Wojewodztwo | Powiat | Gmina,
+    ) -> T:
+        """
+        Get or create an entity record (voivodeship, county, borough, or locality)
 
-        voivodeship = self._select_where(
-            Wojewodztwo, Wojewodztwo.teryt == territorial_code
-        )
+        Args:
+            model_class: The model class to use (Wojewodztwo, Powiat, etc.)
+            name: Name of the entity
+            territorial_code: TERYT code of the entity
+            cache_dict: Reference to the appropriate cache dictionary
+            **kwargs: Additional keyword arguments like parent entities (wojewodztwo, powiat, etc.)
 
-        if not voivodeship:
-            voivodeship = Wojewodztwo(nazwa=name, teryt=territorial_code)
+        Returns:
+            The retrieved or created entity
+        """
+        if territorial_code in cache_dict:
+            return cache_dict[territorial_code]
 
-        self.voivodeships_cache[cache_key] = voivodeship
-        return voivodeship
+        entity = self._select_where(model_class, model_class.teryt == territorial_code)
 
-    def _get_or_create_county(
-        self, name: str, territorial_code: str, voivodeship: Wojewodztwo
-    ) -> Powiat:
-        """Get or create a county record"""
-        cache_key = f"{name}_{territorial_code}"
-        if cache_key in self.counties_cache:
-            return self.counties_cache[cache_key]
+        if not entity:
+            entity = model_class(nazwa=name, teryt=territorial_code, **kwargs)  # pyright: ignore[reportArgumentType]
 
-        county = self._select_where(Powiat, Powiat.teryt == territorial_code)
-
-        if not county:
-            county = Powiat(nazwa=name, teryt=territorial_code, wojewodztwo=voivodeship)
-
-        self.counties_cache[cache_key] = county
-        return county
-
-    def _get_or_create_borough(
-        self, name: str, territorial_code: str, county: Powiat
-    ) -> Gmina:
-        """Get or create a borough record"""
-        cache_key = f"{name}_{territorial_code}"
-        if cache_key in self.boroughs_cache:
-            return self.boroughs_cache[cache_key]
-
-        borough = self._select_where(Gmina, Gmina.teryt == territorial_code)
-
-        if not borough:
-            borough = Gmina(nazwa=name, teryt=territorial_code, powiat=county)
-
-        self.boroughs_cache[cache_key] = borough
-        return borough
-
-    def _get_or_create_locality(
-        self, name: str, territorial_code: str, borough: Gmina
-    ) -> Miejscowosc:
-        """Get or create a city/locality record"""
-        cache_key = f"{name}_{territorial_code}"
-        if cache_key in self.localities_cache:
-            return self.localities_cache[cache_key]
-
-        locality = self._select_where(
-            Miejscowosc, Miejscowosc.teryt == territorial_code
-        )
-
-        if not locality:
-            locality = Miejscowosc(nazwa=name, teryt=territorial_code, gmina=borough)
-
-        self.localities_cache[cache_key] = locality
-        return locality
-
-    def _get_or_create_street(
-        self, name: str | None, territorial_code: str | None
-    ) -> Ulica | None:
-        """Get or create a street record if both name and territorial_code are provided"""
-        if not name or not territorial_code:
-            return None
-
-        cache_key = f"{name}_{territorial_code}"
-        if cache_key in self.streets_cache:
-            return self.streets_cache[cache_key]
-
-        street = self._select_where(Ulica, Ulica.teryt == territorial_code)
-
-        if not street:
-            street = Ulica(nazwa=name, teryt=territorial_code)
-
-        self.streets_cache[cache_key] = street
-        return street
+        cache_dict[territorial_code] = entity
+        return entity
 
     def _get_or_create_school_type(self, school_type_base: TypSzkolyBase) -> TypSzkoly:
         """Get or create a school type record"""
@@ -210,34 +155,44 @@ class Decomposer(DatabaseManagerBase):
         self, school_data: SzkolaAPIResponse
     ) -> tuple[Miejscowosc, Ulica | None]:
         """Process location data from school_data and return locality and street objects"""
-        voivodeship = self._get_or_create_voivodeship(
+        voivodeship = self._get_or_create_entity(
+            model_class=Wojewodztwo,
             name=school_data.wojewodztwo,
             territorial_code=school_data.wojewodztwo_kod_TERYT,
+            cache_dict=self.voivodeships_cache,
         )
 
-        county = self._get_or_create_county(
+        county = self._get_or_create_entity(
+            model_class=Powiat,
             name=school_data.powiat,
             territorial_code=school_data.powiat_kod_TERYT,
-            voivodeship=voivodeship,
+            cache_dict=self.counties_cache,
+            wojewodztwo=voivodeship,
         )
 
-        borough = self._get_or_create_borough(
+        borough = self._get_or_create_entity(
+            model_class=Gmina,
             name=school_data.gmina,
             territorial_code=school_data.gmina_kod_TERYT,
-            county=county,
+            cache_dict=self.boroughs_cache,
+            powiat=county,
         )
 
-        locality = self._get_or_create_locality(
+        locality = self._get_or_create_entity(
+            model_class=Miejscowosc,
             name=school_data.miejscowosc,
             territorial_code=school_data.miejscowosc_kod_TERYT,
-            borough=borough,
+            cache_dict=self.localities_cache,
+            gmina=borough,
         )
 
         street = None
         if school_data.ulica and school_data.ulica_kod_TERYT:
-            street = self._get_or_create_street(
+            street = self._get_or_create_entity(
+                model_class=Ulica,
                 name=school_data.ulica,
                 territorial_code=school_data.ulica_kod_TERYT,
+                cache_dict=self.streets_cache,
             )
 
         return locality, street
