@@ -9,6 +9,7 @@ from app.models.schools import (
     KategoriaUczniow,
     KategoriaUczniowBase,
     KsztalcenieZawodowe,
+    KsztalcenieZawodoweBase,
     StatusPublicznoprawny,
     StatusPublicznoprawnyBase,
     Szkola,
@@ -38,7 +39,7 @@ class Decomposer(DatabaseManagerBase):
         self.student_categories_cache: dict[str, KategoriaUczniow] = {}
         self.vocational_trainings_cache: dict[str, KsztalcenieZawodowe] = {}
 
-    def _get_or_create_entity[T: (Wojewodztwo, Powiat, Gmina, Miejscowosc, Ulica)](
+    def _get_or_create_location[T: (Wojewodztwo, Powiat, Gmina, Miejscowosc, Ulica)](
         self,
         model_class: type[T],
         name: str,
@@ -62,107 +63,69 @@ class Decomposer(DatabaseManagerBase):
         if territorial_code in cache_dict:
             return cache_dict[territorial_code]
 
-        entity = self._select_where(model_class, model_class.teryt == territorial_code)
+        location = self._select_where(
+            model_class, model_class.teryt == territorial_code
+        )
+
+        if not location:
+            location = model_class(nazwa=name, teryt=territorial_code, **kwargs)  # pyright: ignore[reportArgumentType]
+
+        cache_dict[territorial_code] = location
+        return location
+
+    def _get_or_create_educational_entity[
+        T: (
+            TypSzkoly,
+            StatusPublicznoprawny,
+            KategoriaUczniow,
+            KsztalcenieZawodowe,
+            EtapEdukacji,
+        )
+    ](
+        self,
+        model_class: type[T],
+        entity_base: TypSzkolyBase
+        | StatusPublicznoprawnyBase
+        | KategoriaUczniowBase
+        | KsztalcenieZawodoweBase
+        | EtapEdukacjiBase,
+        cache_dict: dict[str, T],
+    ) -> T:
+        """
+        Get or create an educational entity record (school type, legal status, student category, etc.)
+
+        Args:
+            model_class: The model class to use (TypSzkoly, StatusPublicznoprawny, etc.)
+            entity_base: Base entity object containing data for initialization
+            cache_dict: Reference to the appropriate cache dictionary
+
+        Returns:
+            The retrieved or created educational entity
+        """
+        name = entity_base.nazwa
+        if name in cache_dict:
+            return cache_dict[name]
+
+        entity = self._select_where(model_class, model_class.nazwa == name)
 
         if not entity:
-            entity = model_class(nazwa=name, teryt=territorial_code, **kwargs)  # pyright: ignore[reportArgumentType]
+            entity = model_class.model_validate(entity_base)
 
-        cache_dict[territorial_code] = entity
+        cache_dict[name] = entity
         return entity
-
-    def _get_or_create_school_type(self, school_type_base: TypSzkolyBase) -> TypSzkoly:
-        """Get or create a school type record"""
-        name = school_type_base.nazwa
-        if name in self.school_types_cache:
-            return self.school_types_cache[name]
-
-        school_type = self._select_where(TypSzkoly, TypSzkoly.nazwa == name)
-
-        if not school_type:
-            school_type = TypSzkoly.model_validate(school_type_base)
-
-        self.school_types_cache[name] = school_type
-        return school_type
-
-    def _get_or_create_status(
-        self, status_base: StatusPublicznoprawnyBase
-    ) -> StatusPublicznoprawny:
-        """Get or create a public-legal status record"""
-        name = status_base.nazwa
-        if name in self.statuses_cache:
-            return self.statuses_cache[name]
-
-        school_status = self._select_where(
-            StatusPublicznoprawny, StatusPublicznoprawny.nazwa == name
-        )
-
-        if not school_status:
-            school_status = StatusPublicznoprawny.model_validate(status_base)
-
-        self.statuses_cache[name] = school_status
-        return school_status
-
-    def _get_or_create_student_category(
-        self, category_base: KategoriaUczniowBase
-    ) -> KategoriaUczniow:
-        """Get or create a student category record"""
-        name = category_base.nazwa
-        if name in self.student_categories_cache:
-            return self.student_categories_cache[name]
-
-        student_category = self._select_where(
-            KategoriaUczniow, KategoriaUczniow.nazwa == name
-        )
-
-        if not student_category:
-            student_category = KategoriaUczniow.model_validate(category_base)
-
-        self.student_categories_cache[name] = student_category
-        return student_category
-
-    def _get_or_create_vocational_training(self, name: str) -> KsztalcenieZawodowe:
-        """Get or create a vocational training record"""
-        if name in self.vocational_trainings_cache:
-            return self.vocational_trainings_cache[name]
-
-        vocational_training = self._select_where(
-            KsztalcenieZawodowe, KsztalcenieZawodowe.nazwa == name
-        )
-
-        if not vocational_training:
-            vocational_training = KsztalcenieZawodowe(nazwa=name)
-
-        self.vocational_trainings_cache[name] = vocational_training
-        return vocational_training
-
-    def _get_or_create_education_stage(
-        self, education_stage_base: EtapEdukacjiBase
-    ) -> EtapEdukacji:
-        """Get or create an education stage record"""
-        name = education_stage_base.nazwa
-        if name in self.education_stages_cache:
-            return self.education_stages_cache[name]
-
-        education_stage = self._select_where(EtapEdukacji, EtapEdukacji.nazwa == name)
-
-        if not education_stage:
-            education_stage = EtapEdukacji.model_validate(education_stage_base)
-
-        self.education_stages_cache[name] = education_stage
-        return education_stage
 
     def _process_location_data(
         self, school_data: SzkolaAPIResponse
     ) -> tuple[Miejscowosc, Ulica | None]:
         """Process location data from school_data and return locality and street objects"""
-        voivodeship = self._get_or_create_entity(
+        voivodeship = self._get_or_create_location(
             model_class=Wojewodztwo,
             name=school_data.wojewodztwo,
             territorial_code=school_data.wojewodztwo_kod_TERYT,
             cache_dict=self.voivodeships_cache,
         )
 
-        county = self._get_or_create_entity(
+        county = self._get_or_create_location(
             model_class=Powiat,
             name=school_data.powiat,
             territorial_code=school_data.powiat_kod_TERYT,
@@ -170,7 +133,7 @@ class Decomposer(DatabaseManagerBase):
             wojewodztwo=voivodeship,
         )
 
-        borough = self._get_or_create_entity(
+        borough = self._get_or_create_location(
             model_class=Gmina,
             name=school_data.gmina,
             territorial_code=school_data.gmina_kod_TERYT,
@@ -178,7 +141,7 @@ class Decomposer(DatabaseManagerBase):
             powiat=county,
         )
 
-        locality = self._get_or_create_entity(
+        locality = self._get_or_create_location(
             model_class=Miejscowosc,
             name=school_data.miejscowosc,
             territorial_code=school_data.miejscowosc_kod_TERYT,
@@ -188,7 +151,7 @@ class Decomposer(DatabaseManagerBase):
 
         street = None
         if school_data.ulica and school_data.ulica_kod_TERYT:
-            street = self._get_or_create_entity(
+            street = self._get_or_create_location(
                 model_class=Ulica,
                 name=school_data.ulica,
                 territorial_code=school_data.ulica_kod_TERYT,
@@ -201,12 +164,20 @@ class Decomposer(DatabaseManagerBase):
         self, school_data: SzkolaAPIResponse
     ) -> tuple[TypSzkoly, StatusPublicznoprawny, KategoriaUczniow]:
         """Process school type, status and student category data"""
-        school_type = self._get_or_create_school_type(school_type_base=school_data.typ)
-        status = self._get_or_create_status(
-            status_base=school_data.status_publiczno_prawny
+        school_type = self._get_or_create_educational_entity(
+            model_class=TypSzkoly,
+            entity_base=school_data.typ,
+            cache_dict=self.school_types_cache,
         )
-        student_category = self._get_or_create_student_category(
-            category_base=school_data.kategoria_uczniow
+        status = self._get_or_create_educational_entity(
+            model_class=StatusPublicznoprawny,
+            entity_base=school_data.status_publiczno_prawny,
+            cache_dict=self.statuses_cache,
+        )
+        student_category = self._get_or_create_educational_entity(
+            model_class=KategoriaUczniow,
+            entity_base=school_data.kategoria_uczniow,
+            cache_dict=self.student_categories_cache,
         )
         return school_type, status, student_category
 
@@ -219,7 +190,12 @@ class Decomposer(DatabaseManagerBase):
 
         vocational_trainings: list[KsztalcenieZawodowe] = []
         for value in school_data.ksztalcenie_zawodowe.values():
-            training = self._get_or_create_vocational_training(name=value)
+            vocational_training_base = KsztalcenieZawodoweBase(nazwa=value)
+            training = self._get_or_create_educational_entity(
+                model_class=KsztalcenieZawodowe,
+                entity_base=vocational_training_base,
+                cache_dict=self.vocational_trainings_cache,
+            )
             vocational_trainings.append(training)
 
         return vocational_trainings
@@ -230,8 +206,10 @@ class Decomposer(DatabaseManagerBase):
         """Process education stages data"""
         education_stages_list: list[EtapEdukacji] = []
         for education_stage_data in school_data.etapy_edukacji:
-            stage = self._get_or_create_education_stage(
-                education_stage_base=education_stage_data
+            stage = self._get_or_create_educational_entity(
+                model_class=EtapEdukacji,
+                entity_base=education_stage_data,
+                cache_dict=self.education_stages_cache,
             )
             education_stages_list.append(stage)
         return education_stages_list
