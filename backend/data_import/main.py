@@ -93,6 +93,7 @@ def excel_importer():
 def update_scoring():
     with Scorer(Score.SUBJECT_WEIGHTS_E8) as scorer:
         scorer.initalize_required_data()
+        scorer.calculate_scores()
 
 
 def main():
