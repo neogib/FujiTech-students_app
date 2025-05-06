@@ -10,16 +10,16 @@ from app.core.database import engine
 class DatabaseManagerBase:
     """Base class providing session management functionality"""
 
-    engine: Engine
-    session: Session | None
+    _engine: Engine
+    _session: Session | None
 
     def __init__(self):
-        self.engine = engine
-        self.session = None
+        self._engine = engine
+        self._session = None
 
     def __enter__(self) -> Self:
         # Create the session when entering the context
-        self.session = Session(self.engine)
+        self._session = Session(self._engine)
         return self
 
     def __exit__(
@@ -33,15 +33,15 @@ class DatabaseManagerBase:
 
     def close(self) -> None:
         """Manual close method for when not using as context manager"""
-        if self.session:
-            self.session.close()
-            self.session = None
+        if self._session:
+            self._session.close()
+            self._session = None
 
     def _ensure_session(self) -> Session:
         """Ensure we have an active session and return it"""
-        if self.session is None:
-            self.session = Session(self.engine)
-        return self.session
+        if self._session is None:
+            self._session = Session(self._engine)
+        return self._session
 
     def _select_where[T: SQLModel](
         self, model: type[T], condition: BinaryExpression[bool] | bool
