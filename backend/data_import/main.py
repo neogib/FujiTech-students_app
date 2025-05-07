@@ -92,7 +92,9 @@ def excel_importer():
 
 def update_scoring():
     with Scorer(Score.SUBJECT_WEIGHTS_E8) as scorer:
-        scorer.initalize_required_data()
+        if not scorer.initalize_required_data():
+            logger.error("❌ Failed to initialize required data. Skipping scoring...")
+            return
         scorer.calculate_scores()
 
 

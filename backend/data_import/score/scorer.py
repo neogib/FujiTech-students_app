@@ -4,6 +4,7 @@ from typing import cast
 from sqlmodel import select
 
 from app.models.exam_results import Przedmiot, WynikE8
+from app.models.schools import Szkola
 from data_import.utils.db.session import DatabaseManagerBase
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,6 @@ class Scorer(DatabaseManagerBase):
 
     def _get_subject_score(self, subject: Przedmiot, school_id: int) -> float:
         session = self._ensure_session()
-        # TO DO - calculate it based on chatgpt example
         statement = select(WynikE8).where(
             WynikE8.szkola_id == school_id, WynikE8.przedmiot_id == subject.id
         )
@@ -58,12 +58,14 @@ class Scorer(DatabaseManagerBase):
                 The score will be calculated with score 0 from this subject."""
             )
             return 0
+        # there should be the same amount of records as years
         if len(subject_results) != self.years_num:
             logger.warning(
                 f"""⚠️ Number of years does not match the number of results, school: {school_id}, subject: {subject}.
                 The score will be calculated on the basis of results not from all years."""
             )
 
+        # calculate weighted median or weighted average if mediana is null
         numerator = 0.0
         denominator = 0.0
         for result in subject_results:
@@ -75,33 +77,40 @@ class Scorer(DatabaseManagerBase):
             denominator += result.liczba_zdajacych
         return numerator / denominator
 
-    def calculate_scores(self):
-        # first get all distinct years from the table, count them
+    def initalize_required_data(self) -> bool:
         try:
-            self._get_number_of_years()
+            self._get_school_ids()
+            self._get_subjects()
+            return True
         except ValueError as e:
             logger.error(
-                f"❌ Error during initialization: {e}. Skipping calculating scores..."
+                f"❌ Value Error during initialization: {e}. Skipping scoring schools..."
+            )
+            return False
+
+    def calculate_scores(self):
+        session = self._ensure_session()
+        try:
+            self._get_number_of_years()  # count all distinct years from the table with scores
+        except ValueError as e:
+            logger.error(
+                f"❌ Error during counting years: {e}. Skipping calculating scores..."
             )
             return
         # then get all records for specific school and specific subject -> calculate score for this subject
         for id in self.schools_ids:
-            final_score = 0.0
+            final_score = 0.0  # final score for every school after calculating results from all subjects
             for subject in self.subjects:
-                # calculate score
                 subject_score = self._get_subject_score(subject, id)
                 final_score += subject_score * self.subjects_weights_map[subject.nazwa]
-
-        # add this to the main score for the school
-        # then do the same thing for the next subject
-        # at the end update school column
-
-    def initalize_required_data(self):
-        try:
-            self._get_school_ids()
-            self._get_subjects()
-        except ValueError as e:
-            logger.error(
-                f"❌ Error during initialization: {e}. Skipping scoring schools..."
+            school = self._select_where(Szkola, Szkola.id == id)
+            if not school:
+                logger.error(f"❌ School with id: {id} not found in the database.")
+                continue
+            school.score = final_score
+            session.add(school)
+            session.commit()
+            session.refresh(school)
+            logger.info(
+                f"✅ School with RSPO: {school.numer_rspo} has been scored. Score: {school.score}"
             )
-            return
