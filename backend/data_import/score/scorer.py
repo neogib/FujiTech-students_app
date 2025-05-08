@@ -3,8 +3,9 @@ from typing import cast
 
 from sqlmodel import select
 
-from app.models.exam_results import Przedmiot, WynikE8
+from app.models.exam_results import Przedmiot, WynikE8, WynikEM
 from app.models.schools import Szkola
+from data_import.core.config import SubjectWeights
 from data_import.utils.db.session import DatabaseManagerBase
 
 logger = logging.getLogger(__name__)
@@ -15,21 +16,25 @@ class Scorer(DatabaseManagerBase):
     schools_ids: list[int]
     subjects: list[Przedmiot]
     years_num: int = 0
+    table_type: type[WynikE8 | WynikEM]
 
-    def __init__(self, subjects_weights_map: dict[str, float]):
+    def __init__(
+        self, subjects_weights_map: SubjectWeights, table_type: type[WynikE8 | WynikEM]
+    ):
         super().__init__()
-        self.subjects_weights_map = subjects_weights_map
+        self.subjects_weights_map = subjects_weights_map.value
+        self.table_type = table_type
         self.schools_ids = []
         self.subjects = []
 
     def _get_school_ids(self):
         session = self._ensure_session()
-        ids_sequence = cast(
-            list[int], session.exec(select(WynikE8.szkola_id)).unique().all()
+        ids = cast(
+            list[int], session.exec(select(self.table_type.szkola_id)).unique().all()
         )
-        if not ids_sequence:
+        if not ids:
             raise ValueError("No school IDs found in the database.")
-        self.schools_ids = ids_sequence
+        self.schools_ids = ids
 
     def _get_subjects(self):
         session = self._ensure_session()
@@ -41,38 +46,42 @@ class Scorer(DatabaseManagerBase):
 
     def _get_number_of_years(self):
         session = self._ensure_session()
-        years = session.exec(select(WynikE8.rok)).unique().all()
+        years = session.exec(select(self.table_type.rok)).unique().all()
         if not years:
             raise ValueError("No years found in the database.")
         self.years_num = len(years)
 
     def _get_subject_score(self, subject: Przedmiot, school_id: int) -> float:
         session = self._ensure_session()
-        statement = select(WynikE8).where(
-            WynikE8.szkola_id == school_id, WynikE8.przedmiot_id == subject.id
+        statement = select(self.table_type).where(
+            self.table_type.szkola_id == school_id,
+            self.table_type.przedmiot_id == subject.id,
         )
         subject_results = session.exec(statement).all()
         if not subject_results:
             logger.warning(
-                f"""⚠️ No results found for school: {school_id}, subject: {subject}. 
-                The score will be calculated with score 0 from this subject."""
+                f"⚠️ No results found for school: {school_id}, subject: {subject}. The score will be calculated with score 0 from this subject."
             )
             return 0
         # there should be the same amount of records as years
         if len(subject_results) != self.years_num:
             logger.warning(
-                f"""⚠️ Number of years does not match the number of results, school: {school_id}, subject: {subject}.
-                The score will be calculated on the basis of results not from all years."""
+                f"⚠️ Number of years does not match the number of results, school: {school_id}, subject: {subject}. The score will be calculated on the basis of results not from all years."
             )
 
-        # calculate weighted median or weighted average if mediana is null
+        # calculate weighted median
         numerator = 0.0
         denominator = 0.0
         for result in subject_results:
             # For EM have to change it to sredni_wynik
-            value = cast(
-                float, result.mediana if result.mediana else result.wynik_sredni
-            )
+            value = cast(float, result.mediana)
+            if not value:  # if there is no median use sredni_wynik
+                value = cast(
+                    float,
+                    result.wynik_sredni
+                    if isinstance(result, WynikE8)
+                    else result.sredni_wynik,
+                )
             numerator += value * result.liczba_zdajacych
             denominator += result.liczba_zdajacych
         return numerator / denominator

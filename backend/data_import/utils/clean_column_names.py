@@ -13,6 +13,9 @@ def clean_column_name(name: str) -> str:
     # Remove percentage signs and asterisks
     name = re.sub(r"[*%]", "", name)
 
+    # Remove hyphens and any spaces following them
+    name = re.sub(r"-\s*", "", name)
+
     # Strip leading/trailing whitespace
     name = name.strip()
 

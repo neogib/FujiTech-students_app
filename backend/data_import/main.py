@@ -1,10 +1,11 @@
 import logging
 
 from app.core.database import create_db_and_tables
+from app.models.exam_results import WynikE8
 from data_import.api.db.decomposer import Decomposer
 from data_import.api.exceptions import SchoolsDataError
 from data_import.api.fetcher import SchoolsAPIFetcher
-from data_import.core.config import APISettings, ExamType, Score
+from data_import.core.config import APISettings, ExamType, SubjectWeights
 from data_import.excel.db.table_splitter import TableSplitter
 from data_import.excel.reader import ExcelReader
 from data_import.score.scorer import Scorer
@@ -91,7 +92,7 @@ def excel_importer():
 
 
 def update_scoring():
-    with Scorer(Score.SUBJECT_WEIGHTS_E8) as scorer:
+    with Scorer(SubjectWeights.E8, WynikE8) as scorer:
         if not scorer.initalize_required_data():
             logger.error("❌ Failed to initialize required data. Skipping scoring...")
             return

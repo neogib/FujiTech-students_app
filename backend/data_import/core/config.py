@@ -41,10 +41,16 @@ class ExcelFile:
 
 
 @final
-class Score:
-    NUM_YEARS: int = 4
-    SUBJECT_WEIGHTS_E8: ClassVar[dict[str, float]] = {
+class SubjectWeights(Enum):
+    E8 = {  # noqa: RUF012
         "jezyk_polski": 0.3,
         "matematyka": 0.4,
         "jezyk_angielski": 0.3,
+    }
+    EM = {  # noqa: RUF012
+        "jezyk_polski_poziom_podstawowy": 0.2,
+        "matematyka_poziom_podstawowy": 0.3,
+        "jezyk_angielski_poziom_podstawowy": 0.2,
+        "jezyk_angielski_poziom_rozszerzony": 0.15,
+        "matematyka_poziom_rozszerzony": 0.15,
     }
