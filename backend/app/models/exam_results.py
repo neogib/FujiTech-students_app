@@ -18,7 +18,7 @@ class Przedmiot(PrzedmiotBase, table=True):
 
 # Columns that default to None don't always exist in excel files
 class WynikBase(SQLModel):
-    liczba_zdajacych: int
+    liczba_zdajacych: int | None
     mediana: float | None = None
 
 
@@ -38,15 +38,17 @@ class WynikCommon(WynikBase):
     rok: int = Field(index=True)
 
 
-class WynikE8(WynikCommon, WynikE8Extra, table=True):
+class WynikE8(WynikE8Extra, WynikCommon, table=True):
     __tablename__: str = "wynik_e8"  # pyright: ignore[reportIncompatibleVariableOverride]
     id: int | None = Field(default=None, primary_key=True)
+    liczba_zdajacych: int  # pyright: ignore[reportIncompatibleVariableOverride]
     przedmiot: Przedmiot = Relationship(back_populates="wyniki_e8")  # pyright: ignore[reportAny]
     szkola: "Szkola" = Relationship(back_populates="wyniki_e8")  # pyright: ignore[reportAny]
 
 
-class WynikEM(WynikCommon, WynikEMExtra, table=True):
+class WynikEM(WynikEMExtra, WynikCommon, table=True):
     __tablename__: str = "wynik_em"  # pyright: ignore[reportIncompatibleVariableOverride]
     id: int | None = Field(default=None, primary_key=True)
+    liczba_zdajacych: int  # pyright: ignore[reportIncompatibleVariableOverride]
     przedmiot: Przedmiot = Relationship(back_populates="wyniki_em")  # pyright: ignore[reportAny]
     szkola: "Szkola" = Relationship(back_populates="wyniki_em")  # pyright: ignore[reportAny]
