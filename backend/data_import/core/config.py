@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import ClassVar, final
 
+from app.models.exam_results import WynikE8, WynikEM
+
 
 class APISettings:
     API_SCHOOLS_URL: str = "https://api-rspo.men.gov.pl/api/placowki/"
@@ -41,16 +43,28 @@ class ExcelFile:
 
 
 @final
-class SubjectWeights(Enum):
-    E8 = {  # noqa: RUF012
-        "jezyk_polski": 0.3,
-        "matematyka": 0.4,
-        "jezyk_angielski": 0.3,
-    }
-    EM = {  # noqa: RUF012
-        "jezyk_polski_poziom_podstawowy": 0.2,
-        "matematyka_poziom_podstawowy": 0.3,
-        "jezyk_angielski_poziom_podstawowy": 0.2,
-        "jezyk_angielski_poziom_rozszerzony": 0.15,
-        "matematyka_poziom_rozszerzony": 0.15,
-    }
+class Score(Enum):
+    E8 = (
+        {
+            "jezyk_polski": 0.3,
+            "matematyka": 0.4,
+            "jezyk_angielski": 0.3,
+        },
+        WynikE8,
+    )
+    EM = (
+        {
+            "jezyk_polski_poziom_podstawowy": 0.2,
+            "matematyka_poziom_podstawowy": 0.3,
+            "jezyk_angielski_poziom_podstawowy": 0.2,
+            "jezyk_angielski_poziom_rozszerzony": 0.15,
+            "matematyka_poziom_rozszerzony": 0.15,
+        },
+        WynikEM,
+    )
+
+    def __init__(
+        self, subject_weights_map: dict[str, float], table_type: type[WynikE8 | WynikEM]
+    ):
+        self.subject_weights_map = subject_weights_map
+        self.table_type = table_type
