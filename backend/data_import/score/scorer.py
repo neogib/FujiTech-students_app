@@ -54,7 +54,7 @@ class Scorer(DatabaseManagerBase):
             raise ValueError("No years found in the database.")
         self._years_num = len(years)
 
-    def _initalize_required_data(self):
+    def _initialize_required_data(self):
         self._load_school_ids()
         self._load_subjects()
         self._get_number_of_years()  # count all distinct years from the table with scores
@@ -105,7 +105,7 @@ class Scorer(DatabaseManagerBase):
     def calculate_scores(self):
         session = self._ensure_session()
         try:
-            self._initalize_required_data()
+            self._initialize_required_data()
         except ValueError as e:
             logger.error(
                 f"⚙️ Initialization error: {e}. Aborting school scoring process."

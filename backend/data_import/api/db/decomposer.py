@@ -1,6 +1,6 @@
 import logging
 
-from pydantic_core import ValidationError
+from pydantic import ValidationError
 
 from app.models.locations import Gmina, Miejscowosc, Powiat, Ulica, Wojewodztwo
 from app.models.schools import (
