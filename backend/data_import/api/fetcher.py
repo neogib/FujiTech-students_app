@@ -4,9 +4,9 @@ from typing import cast
 
 import requests
 
-from ..core.config import TIMEOUT, APISettings, RetrySettings
-from .exceptions import APIRequestError, SchoolsDataError
-from .types import APIResponse, SchoolDict
+from data_import.api.exceptions import APIRequestError, SchoolsDataError
+from data_import.api.types import APIResponse, SchoolDict
+from data_import.core.config import TIMEOUT, APISettings, RetrySettings
 
 logger = logging.getLogger(__name__)
 

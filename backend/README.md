@@ -9,7 +9,6 @@ Look at the [FastAPI documentation](https://fastapi.tiangolo.com) to learn more.
 ```bash
 # Install dependencies
 uv sync
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
 ### Setup for [pip](https://pip.pypa.io/en/stable/getting-started/) users
@@ -25,14 +24,30 @@ pip install .
 
 ## Running the Project
 
-You can run backend with `fastapi`:
+### You can run backend with FastAPI
+
+- for pip users
 
 ```bash
 fastapi dev main.py
 ```
 
-Or with `uvicorn` directly:
+- for uv users
+
+```bash
+uv run fastapi dev
+```
+
+### Or with Uvicorn directly
+
+- for pip users
 
 ```bash
 uvicorn main:app --reload
+```
+
+- for uv users
+
+```bash
+uv run uvicorn main:app --reload
 ```

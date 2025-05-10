@@ -1,10 +1,13 @@
 import logging
 
-from ..app.core.database import create_db_and_tables
-from .api.exceptions import SchoolsDataError
-from .api.fetcher import SchoolsAPIFetcher
-from .core.config import APISettings
-from .db.decomposer import DatabaseDecomposer
+from app.core.database import create_db_and_tables
+from data_import.api.db.decomposer import Decomposer
+from data_import.api.exceptions import SchoolsDataError
+from data_import.api.fetcher import SchoolsAPIFetcher
+from data_import.core.config import APISettings, ExamType, ScoreType
+from data_import.excel.db.table_splitter import TableSplitter
+from data_import.excel.reader import ExcelReader
+from data_import.score.scorer import Scorer
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +29,7 @@ def print_error_message(segment_number: int, current_page: int):
                  💡 You can resume the process by starting from this page""")
 
 
-def main():
-    configure_logging()
-    logger.info("🛠️ Creating database and tables...")
-    create_db_and_tables()
-
-    logger.info("📥 Starting segmented schools data import...")
+def api_importer():
     api_fetcher = SchoolsAPIFetcher()
     current_page = APISettings.START_PAGE
     total_processed = 0
@@ -53,7 +51,7 @@ def main():
             logger.info(
                 f"⚡ Processing {len(schools_data)} schools from segment {segment_number}..."
             )
-            with DatabaseDecomposer() as decomposer:
+            with Decomposer() as decomposer:
                 decomposer.prune_and_decompose_schools(schools_data)
 
             total_processed += len(schools_data)
@@ -79,7 +77,51 @@ def main():
             print_error_message(segment_number, current_page)
             break
 
-    logger.info(f"🎉 Import completed. Total schools processed: {total_processed}")
+    logger.info(
+        f"🎉 Import from API completed. Total schools processed: {total_processed}"
+    )
+
+
+def excel_importer():
+    reader = ExcelReader()
+    logger.info("📄 Starting Excel data import...")
+    for exam_type in ExamType:
+        logger.info(f"📊 Processing {exam_type.name} exam data...")
+        for year, exam_data in reader.load_files(exam_type):
+            logger.info(f"🗓️ Processing {exam_type.name} data for year {year}...")
+            with TableSplitter(exam_data, exam_type, year) as splitter:
+                if not splitter.initialize():
+                    logger.warning(
+                        f"⚠️ Skipping invalid {exam_type.name} data for year {year}"
+                    )
+                    continue  # skip this file - it was invalid
+                splitter.split_exam_results()
+                logger.info(
+                    f"✅ Successfully processed {exam_type.name} data for year {year}"
+                )
+    logger.info("🎉 Excel data import completed")
+
+
+def update_scoring():
+    for score_type in ScoreType:
+        logger.info(f"📊 Processing {score_type.name} scores...")
+        with Scorer(score_type) as scorer:
+            scorer.calculate_scores()
+
+    logger.info("🎉 Score calculation completed")
+
+
+def main():
+    configure_logging()
+    logger.info("🛠️ Creating database and tables...")
+    create_db_and_tables()
+
+    logger.info("📥 Starting segmented schools data import...")
+    api_importer()
+    excel_importer()
+
+    logger.info("📊 Starting score calculation...")
+    update_scoring()
 
 
 if __name__ == "__main__":
