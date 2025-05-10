@@ -102,8 +102,8 @@ def main():
     create_db_and_tables()
 
     logger.info("📥 Starting segmented schools data import...")
-    # api_importer()
-    # excel_importer()
+    api_importer()
+    excel_importer()
 
     logger.info("📊 Starting score calculation...")
     update_scoring()

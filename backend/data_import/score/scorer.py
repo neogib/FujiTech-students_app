@@ -81,7 +81,7 @@ class Scorer(DatabaseManagerBase):
         numerator = 0.0
         denominator = 0.0
         for result in subject_results:
-            value = cast(float, result.mediana)
+            value = result.mediana
             if not value:  # if there is no median use sredni_wynik for WynikEM and wynik_sredni for WynikE8
                 value = cast(
                     float,

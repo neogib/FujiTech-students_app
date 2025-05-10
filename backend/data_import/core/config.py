@@ -54,11 +54,11 @@ class ScoreType(Enum):
     )
     EM = (
         {
-            "jezyk_polski_poziom_podstawowy": 0.2,
+            "jezyk_polski_poziom_podstawowy": 0.25,
             "matematyka_poziom_podstawowy": 0.3,
-            "jezyk_angielski_poziom_podstawowy": 0.2,
-            "jezyk_angielski_poziom_rozszerzony": 0.15,
-            "matematyka_poziom_rozszerzony": 0.15,
+            "jezyk_angielski_poziom_podstawowy": 0.25,
+            "jezyk_angielski_poziom_rozszerzony": 0.1,
+            "matematyka_poziom_rozszerzony": 0.1,
         },
         WynikEM,
     )
