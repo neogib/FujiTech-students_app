@@ -51,7 +51,9 @@ class TableSplitter(DatabaseManagerBase):
             self._get_subjects_names()
             return True
         except ValueError as e:
-            logger.error(f"❌ Error during initialization: {e}. Skipping this file...")
+            logger.error(
+                f"❌ Initialization failed: {e}. Skipping processing for this file."
+            )
             return False
 
     def _get_rspo_col_name(self):
@@ -85,7 +87,7 @@ class TableSplitter(DatabaseManagerBase):
                     continue
                 self.unique_subjects.add(str(col[0]))
 
-        logger.info(f"ℹ️ Identified subjects: {self.unique_subjects}")  # noqa: RUF001
+        logger.info(f"📚 Identified subjects for processing: {self.unique_subjects}")
         cols_to_keep = [*self.unique_subjects, self.rspo_col_name[0]]
 
         # slicing of self.exam_data to get only exam results + rspo column
@@ -107,7 +109,7 @@ class TableSplitter(DatabaseManagerBase):
 
     def create_subject(self, subject_name: str):
         """Creates a Przedmiot record in the database."""
-        logger.info(f"➕ Creating new Przedmiot: {subject_name}")  # noqa: RUF001
+        logger.info(f"✨ Creating new subject (Przedmiot): {subject_name}")
         subject = Przedmiot(nazwa=subject_name)
         self.subjects_cache[subject_name] = subject
 
@@ -118,18 +120,20 @@ class TableSplitter(DatabaseManagerBase):
         rspo = school_exam_data.at[self.rspo_col_name]
 
         if pd.isna(rspo):
-            self.skip_school(f"⚠️ RSPO number not found in row {index}.")
+            self.skip_school(f"❓ RSPO number not found in row {index}")
             return None
         return int(rspo)
 
     def get_school(self, rspo: int) -> Szkola | None:
         school = self._select_where(Szkola, Szkola.numer_rspo == rspo)
         if not school:
-            self.skip_school(f"⚠️ School with RSPO {rspo} not found in database.")
+            self.skip_school(f"❓ School with RSPO {rspo} not found in the database")
         return school
 
-    def skip_school(self, message: str):
-        logger.warning(f"{message} Skipping results for this row.")
+    def skip_school(self, reason: str):
+        logger.warning(
+            f"{reason}. Therefore, skipping associated results for this school."
+        )
         self.skipped_schools += 1
 
     def _validate_enough_data(self, result: WynikE8Extra | WynikEMExtra) -> bool:
@@ -158,12 +162,12 @@ class TableSplitter(DatabaseManagerBase):
             result_base = base.model_validate(subject_exam_result)
         except ValidationError as e:
             logger.error(
-                f"❌ Invalid subject data: {e}, subject data: {subject_exam_result}, school rspo: {school.numer_rspo}, przedmiot: {subject.nazwa}"
+                f"🚫 Invalid data for subject '{subject.nazwa}' (School RSPO: {school.numer_rspo}). Details: {subject_exam_result}. Error: {e}"
             )
             return None
         if not self._validate_enough_data(result_base):
             logger.warning(
-                f"⚠️ Not enough data to create a result record. Skipping. Subject data: {subject_exam_result}, subject: {subject}"
+                f"📊 Insufficient data for '{subject.nazwa}' (Details: {subject_exam_result}). Skipping result record creation."
             )
             return None
         result = table(

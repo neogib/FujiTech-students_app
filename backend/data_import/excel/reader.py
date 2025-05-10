@@ -28,7 +28,7 @@ class ExcelReader:
     ) -> Iterator[tuple[int, pd.DataFrame]]:
         for file_path in directory_path.glob("*.xlsx"):
             file_name = file_path.name
-            logger.info(f"Reading file: {file_name}")
+            logger.info(f"📄 Processing file: {file_name}")
             df = pd.read_excel(  # pyright: ignore[reportUnknownMemberType]
                 file_path,
                 sheet_name=ExcelFile.SHEET_NAME,
@@ -44,7 +44,7 @@ class ExcelReader:
         """
         target_dir = exam_type.directory_name
         path = self.base_data_path / target_dir
-        logger.info(f"Loading data from {path}")
+        logger.info(f"📂 Accessing data from directory: {path}")
         yield from self.read_files_from_dir(path, exam_type)
 
-        logger.info(f"Finished reading files from {path}")
+        logger.info(f"✅ Successfully processed all files from: {path}")

@@ -68,14 +68,14 @@ class Scorer(DatabaseManagerBase):
         subject_results = session.exec(statement).all()
         if not subject_results:
             logger.warning(
-                f"⚠️ No results found for school: {school_id}, subject: {subject}. The score will be calculated with score 0 from this subject."
+                f"🤔 No results found for school ID {school_id}, subject '{subject.nazwa}'. Assigning score 0 for this subject's contribution."
             )
             return 0
 
         # there should be the same amount of records as years
         if len(subject_results) != self._years_num:
             logger.info(
-                f"Number of years does not match the number of results, school: {school_id}, subject: {subject}. The score will be calculated on the basis of results not from all years."
+                f"🗓️ Data mismatch for school ID {school_id}, subject '{subject.nazwa}': Found {len(subject_results)} results, expected for {self._years_num} years. Proceeding with available data."
             )
         # calculate weighted median
         numerator = 0.0
@@ -93,7 +93,9 @@ class Scorer(DatabaseManagerBase):
             denominator += result.liczba_zdajacych
 
         if denominator == 0:
-            logger.warning("⚠️ No valid denominator for calculating subject score")
+            logger.warning(
+                f"🔢 Denominator is zero for school ID {school_id}, subject '{subject.nazwa}' (total 'liczba_zdajacych' is 0). Assigning score 0 for this subject."
+            )
             return 0.0
 
         return numerator / denominator
@@ -104,7 +106,7 @@ class Scorer(DatabaseManagerBase):
             self._initalize_required_data()
         except ValueError as e:
             logger.error(
-                f"❌ Value Error during initialization: {e}. Skipping scoring schools..."
+                f"⚙️ Initialization error: {e}. Aborting school scoring process."
             )
             return
         # then get all records for specific school and specific subject -> calculate score for this subject
@@ -116,11 +118,13 @@ class Scorer(DatabaseManagerBase):
                 final_score += subject_score * weight
             school = self._select_where(Szkola, Szkola.id == id)
             if not school:
-                logger.error(f"❌ School with id: {id} not found in the database.")
+                logger.error(
+                    f"🔍 School with ID {id} not found in database. Cannot update score."
+                )
                 continue
             school.score = final_score
             session.add(school)
             session.commit()
             logger.info(
-                f"✅ School with RSPO: {school.numer_rspo} has been scored. Score: {final_score}"
+                f"🎯 Score updated for school (RSPO: {school.numer_rspo}): {final_score:.2f}"
             )
