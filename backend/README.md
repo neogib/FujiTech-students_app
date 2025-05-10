@@ -24,7 +24,7 @@ pip install .
 
 ## Running the Project
 
-#### You can run backend with FastAPI:
+### You can run backend with FastAPI
 
 - for pip users
 
@@ -38,7 +38,7 @@ fastapi dev main.py
 uv run fastapi dev
 ```
 
-#### Or with Uvicorn directly:
+### Or with Uvicorn directly
 
 - for pip users
 

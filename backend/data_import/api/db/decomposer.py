@@ -188,15 +188,14 @@ class Decomposer(DatabaseManagerBase):
         if not school_data.ksztalcenie_zawodowe:
             return []
 
-        vocational_trainings: list[KsztalcenieZawodowe] = []
-        for value in school_data.ksztalcenie_zawodowe.values():
-            vocational_training_base = KsztalcenieZawodoweBase(nazwa=value)
-            training = self._get_or_create_educational_entity(
+        vocational_trainings = [
+            self._get_or_create_educational_entity(
                 model_class=KsztalcenieZawodowe,
-                entity_base=vocational_training_base,
+                entity_base=KsztalcenieZawodoweBase(nazwa=value),
                 cache_dict=self.vocational_trainings_cache,
             )
-            vocational_trainings.append(training)
+            for value in school_data.ksztalcenie_zawodowe.values()
+        ]
 
         return vocational_trainings
 
@@ -204,14 +203,14 @@ class Decomposer(DatabaseManagerBase):
         self, school_data: SzkolaAPIResponse
     ) -> list[EtapEdukacji]:
         """Process education stages data"""
-        education_stages_list: list[EtapEdukacji] = []
-        for education_stage_data in school_data.etapy_edukacji:
-            stage = self._get_or_create_educational_entity(
+        education_stages_list = [
+            self._get_or_create_educational_entity(
                 model_class=EtapEdukacji,
                 entity_base=education_stage_data,
                 cache_dict=self.education_stages_cache,
             )
-            education_stages_list.append(stage)
+            for education_stage_data in school_data.etapy_edukacji
+        ]
         return education_stages_list
 
     def _validate_required_school_data(

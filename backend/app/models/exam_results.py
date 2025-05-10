@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
 if TYPE_CHECKING:
     from app.models.schools import Szkola
@@ -40,6 +40,14 @@ class WynikCommon(WynikBase):
 
 class WynikE8(WynikE8Extra, WynikCommon, table=True):
     __tablename__: str = "wynik_e8"  # pyright: ignore[reportIncompatibleVariableOverride]
+    __table_args__: tuple[UniqueConstraint] = (
+        UniqueConstraint(
+            "szkola_id",
+            "przedmiot_id",
+            "rok",
+            name="uq_wynik_e8_szkola_przedmiot_rok",
+        ),
+    )
     id: int | None = Field(default=None, primary_key=True)
     liczba_zdajacych: int  # pyright: ignore[reportIncompatibleVariableOverride]
     przedmiot: Przedmiot = Relationship(back_populates="wyniki_e8")  # pyright: ignore[reportAny]
@@ -48,6 +56,14 @@ class WynikE8(WynikE8Extra, WynikCommon, table=True):
 
 class WynikEM(WynikEMExtra, WynikCommon, table=True):
     __tablename__: str = "wynik_em"  # pyright: ignore[reportIncompatibleVariableOverride]
+    __table_args__: tuple[UniqueConstraint] = (
+        UniqueConstraint(
+            "szkola_id",
+            "przedmiot_id",
+            "rok",
+            name="uq_wynik_em_szkola_przedmiot_rok",
+        ),
+    )
     id: int | None = Field(default=None, primary_key=True)
     liczba_zdajacych: int  # pyright: ignore[reportIncompatibleVariableOverride]
     przedmiot: Przedmiot = Relationship(back_populates="wyniki_em")  # pyright: ignore[reportAny]

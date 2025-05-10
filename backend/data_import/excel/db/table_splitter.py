@@ -143,9 +143,11 @@ class TableSplitter(DatabaseManagerBase):
             if isinstance(result, WynikEMExtra)
             else result.wynik_sredni
         )
-        if not result.liczba_zdajacych:
+        if (
+            not result.liczba_zdajacych
+        ):  # even if liczba_zdajacych is 0 we are dismissing the result
             return False
-        if not (average_score or result.mediana):
+        if average_score is None and result.mediana is None:  # score can equal to 0
             return False
         return True
 
