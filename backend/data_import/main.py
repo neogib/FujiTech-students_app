@@ -4,7 +4,7 @@ from app.core.database import create_db_and_tables
 from data_import.api.db.decomposer import Decomposer
 from data_import.api.exceptions import SchoolsDataError
 from data_import.api.fetcher import SchoolsAPIFetcher
-from data_import.core.config import APISettings, ExamType, Score
+from data_import.core.config import APISettings, ExamType, ScoreType
 from data_import.excel.db.table_splitter import TableSplitter
 from data_import.excel.reader import ExcelReader
 from data_import.score.scorer import Scorer
@@ -91,8 +91,8 @@ def excel_importer():
 
 
 def update_scoring():
-    for score_type in Score:
-        with Scorer(score_type.subject_weights_map, score_type.table_type) as scorer:
+    for score_type in ScoreType:
+        with Scorer(score_type) as scorer:
             scorer.calculate_scores()
 
 

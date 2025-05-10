@@ -43,7 +43,7 @@ class ExcelFile:
 
 
 @final
-class Score(Enum):
+class ScoreType(Enum):
     E8 = (
         {
             "jezyk_polski": 0.3,
