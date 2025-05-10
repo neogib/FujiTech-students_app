@@ -26,17 +26,29 @@ class ExcelReader:
     def read_files_from_dir(
         self, directory_path: Path, exam_type: ExamType
     ) -> Iterator[tuple[int, pd.DataFrame]]:
+        # Check that the directory actually exists
+        if not directory_path.exists():
+            logger.error(f"Directory not found: {directory_path}")
+            return
         for file_path in directory_path.glob("*.xlsx"):
             file_name = file_path.name
             logger.info(f"📄 Processing file: {file_name}")
-            df = pd.read_excel(  # pyright: ignore[reportUnknownMemberType]
-                file_path,
-                sheet_name=ExcelFile.SHEET_NAME,
-                header=exam_type.header,
-                skiprows=exam_type.skiprows,
-            )
-            file_number = int(file_name.split(".")[0])
-            yield file_number, df
+            try:
+                df = pd.read_excel(  # pyright: ignore[reportUnknownMemberType]
+                    file_path,
+                    sheet_name=ExcelFile.SHEET_NAME,
+                    header=exam_type.header,
+                    skiprows=exam_type.skiprows,
+                )
+                try:
+                    file_number = int(file_name.split(".")[0])
+                    yield file_number, df
+                except ValueError:
+                    logger.error(
+                        f"Invalid filename format: {file_name}. Expected format: 'number.xlsx'"
+                    )
+            except Exception as e:
+                logger.error(f"Error reading file {file_name}: {e}")
 
     def load_files(self, exam_type: ExamType) -> Iterator[tuple[int, pd.DataFrame]]:
         """
