@@ -17,6 +17,7 @@ from app.models.schools import (
     TypSzkoly,
     TypSzkolyBase,
 )
+from data_import.api.db.exceptions import DataValidationError, SchoolProcessingError
 from data_import.api.db.excluded_fields import SchoolFieldExclusions
 from data_import.api.models import SzkolaAPIResponse
 from data_import.api.types import SchoolDict
@@ -203,6 +204,8 @@ class Decomposer(DatabaseManagerBase):
         self, school_data: SzkolaAPIResponse
     ) -> list[EtapEdukacji]:
         """Process education stages data"""
+        if not school_data.etapy_edukacji:
+            return []
         education_stages_list = [
             self._get_or_create_educational_entity(
                 model_class=EtapEdukacji,
@@ -215,14 +218,10 @@ class Decomposer(DatabaseManagerBase):
 
     def _validate_required_school_data(
         self, school_data: SchoolDict
-    ) -> SzkolaAPIResponse | None:
+    ) -> SzkolaAPIResponse:
         """Validate that all required fields are present in the school data"""
-        try:
-            school_model = SzkolaAPIResponse.model_validate(school_data)
-            return school_model
-        except ValidationError as e:
-            logger.error(f"❌ Invalid school data: {e}, School data: {school_data}")
-            return None
+        school_model = SzkolaAPIResponse.model_validate(school_data)
+        return school_model
 
     def _create_school_object(
         self,
@@ -263,11 +262,12 @@ class Decomposer(DatabaseManagerBase):
         """Process a single school's data and save to database"""
         session = self._ensure_session()
 
-        # First, validate the required fields using the power of Pydantic
-        school = self._validate_required_school_data(school_data)
-        if not school:
+        # First, validate the required fields. Let errors propagate upward.
+        try:
+            school = self._validate_required_school_data(school_data)
+        except ValidationError as e:
             session.rollback()
-            return
+            raise DataValidationError(school_data, e) from e
 
         try:
             # Check if school already exists
@@ -316,11 +316,8 @@ class Decomposer(DatabaseManagerBase):
             )
 
         except Exception as e:
-            logger.error(
-                f"❌ Unexpected error processing school {school.numer_rspo}: {e}"
-            )
             session.rollback()
-            return
+            raise SchoolProcessingError(school.numer_rspo, e) from e
 
     def prune_and_decompose_schools(self, schools_data: list[SchoolDict]) -> None:
         """
@@ -334,13 +331,9 @@ class Decomposer(DatabaseManagerBase):
             try:
                 self.prune_and_decompose_single_school_data(school_data)
                 processed_schools += 1
-            except Exception as e:
+            except (SchoolProcessingError, DataValidationError) as e:
                 failed_schools += 1
-                logger.error(
-                    f"📛 Error processing school: {school_data.get('numerRspo', 'unknown')}: {e}"
-                )
-                session = self._ensure_session()
-                session.rollback()
+                logger.error(f"📛 Error processing school: {e}")
 
         logger.info(
             f"📊 Processing complete. Successfully processed: {processed_schools}/{total_schools} schools"

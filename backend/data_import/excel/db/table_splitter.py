@@ -184,6 +184,7 @@ class TableSplitter(DatabaseManagerBase):
 
     def create_results(self, school_exam_data: pd.Series, szkola: Szkola, rspo: int):
         session = self._ensure_session()
+        results_to_commit = 0
         for subject_name in self.unique_subjects:
             subject = self.get_subject(clean_column_name(subject_name))
 
@@ -207,9 +208,11 @@ class TableSplitter(DatabaseManagerBase):
                     )
             if not result:
                 continue  # there was a ValidationError, move on
-            session.commit()
-            session.refresh(result)
+            results_to_commit += 1
             logger.info(f"💾 Added new exam result: {result.przedmiot} (RSPO: {rspo})")
+
+        if results_to_commit > 0:
+            session.commit()
 
     def split_exam_results(self):
         """

@@ -24,7 +24,7 @@ class SzkolaAPIResponse(SzkolaExtendedData):
     geolokalizacja: GeolocationAPIResponse
     typ: TypSzkolyBase
     status_publiczno_prawny: StatusPublicznoprawnyBase
-    etapy_edukacji: list[EtapEdukacjiBase]
+    etapy_edukacji: list[EtapEdukacjiBase] | None
     wojewodztwo: str
     wojewodztwo_kod_TERYT: str  # noqa: N815
     powiat: str
