@@ -3,7 +3,8 @@ from typing import TYPE_CHECKING, Optional  # pyright: ignore[reportDeprecated]
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from .locations import Miejscowosc, Ulica
+    from app.models.exam_results import WynikE8, WynikEM
+    from app.models.locations import Miejscowosc, Ulica
 
 
 class TypSzkolyBase(SQLModel):
@@ -36,6 +37,17 @@ class StatusPublicznoprawnyPublic(StatusPublicznoprawnyBase):
     id: int
 
 
+class KategoriaUczniowBase(SQLModel):
+    nazwa: str = Field(index=True, unique=True)
+
+
+class KategoriaUczniow(KategoriaUczniowBase, table=True):
+    __tablename__: str = "kategoria_uczniow"  # pyright: ignore[reportIncompatibleVariableOverride]
+
+    id: int | None = Field(default=None, primary_key=True)
+    szkoly: list["Szkola"] = Relationship(back_populates="kategoria_uczniow")  # pyright: ignore [reportAny]
+
+
 # link table for connecting EtapyEdukacji and Szkoly
 class SzkolaEtapLink(SQLModel, table=True):
     etap_id: int | None = Field(
@@ -61,6 +73,28 @@ class EtapEdukacji(EtapEdukacjiBase, table=True):
 
 class EtapEdukacjiPublic(EtapEdukacjiBase):
     id: int
+
+
+class SzkolaKsztalcenieZawodoweLink(SQLModel, table=True):
+    ksztalcenie_zawodowe_id: int | None = Field(
+        default=None, foreign_key="ksztalcenie_zawodowe.id", primary_key=True
+    )
+    szkola_id: int | None = Field(
+        default=None, foreign_key="szkola.id", primary_key=True
+    )
+
+
+class KsztalcenieZawodoweBase(SQLModel):
+    nazwa: str = Field(index=True, unique=True)
+
+
+class KsztalcenieZawodowe(KsztalcenieZawodoweBase, table=True):
+    __tablename__: str = "ksztalcenie_zawodowe"  # pyright: ignore[reportIncompatibleVariableOverride]
+
+    id: int | None = Field(default=None, primary_key=True)
+    szkoly: list["Szkola"] = Relationship(  # pyright: ignore [reportAny]
+        back_populates="ksztalcenie_zawodowe", link_model=SzkolaKsztalcenieZawodoweLink
+    )
 
 
 class SzkolaBase(SQLModel):
@@ -89,13 +123,19 @@ class SzkolaExtendedData(SzkolaBase):  # used in SzkolaAPIResponse
 class SzkolaAllData(SzkolaExtendedData):
     geolokalizacja_latitude: float
     geolokalizacja_longitude: float
+    score: float = Field(default=0.0)
     # Foreign keys
-    typ_id: int | None = Field(default=None, foreign_key="typ_szkoly.id")
+    typ_id: int | None = Field(index=True, default=None, foreign_key="typ_szkoly.id")
     status_publicznoprawny_id: int | None = Field(
-        default=None, foreign_key="status_publicznoprawny.id"
+        index=True, default=None, foreign_key="status_publicznoprawny.id"
     )
-    miejscowosc_id: int | None = Field(default=None, foreign_key="miejscowosc.id")
-    ulica_id: int | None = Field(default=None, foreign_key="ulica.id")
+    kategoria_uczniow_id: int | None = Field(
+        index=True, default=None, foreign_key="kategoria_uczniow.id"
+    )
+    miejscowosc_id: int | None = Field(
+        index=True, default=None, foreign_key="miejscowosc.id"
+    )
+    ulica_id: int | None = Field(index=True, default=None, foreign_key="ulica.id")
 
 
 class SzkolaPublic(SzkolaAllData):
@@ -110,6 +150,7 @@ class Szkola(SzkolaAllData, table=True):
     status_publicznoprawny: StatusPublicznoprawny = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly"
     )
+    kategoria_uczniow: KategoriaUczniow = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
     miejscowosc: "Miejscowosc" = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny]
     ulica: Optional["Ulica"] = Relationship(back_populates="szkoly")  # pyright: ignore [reportAny, reportDeprecated]
 
@@ -117,3 +158,8 @@ class Szkola(SzkolaAllData, table=True):
     etapy_edukacji: list[EtapEdukacji] = Relationship(  # pyright: ignore [reportAny]
         back_populates="szkoly", link_model=SzkolaEtapLink
     )
+    ksztalcenie_zawodowe: list[KsztalcenieZawodowe] = Relationship(  # pyright: ignore [reportAny]
+        back_populates="szkoly", link_model=SzkolaKsztalcenieZawodoweLink
+    )
+    wyniki_e8: list["WynikE8"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
+    wyniki_em: list["WynikEM"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]

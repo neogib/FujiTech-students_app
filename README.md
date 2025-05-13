@@ -110,7 +110,6 @@ For uv users:
 
 ```bash
 uv sync --project backend
-source backend/.venv/bin/activate   # On Windows: backend\.venv\Scripts\activate
 ```
 
 #### Install frontend dependencies (using pnpm):
@@ -123,16 +122,32 @@ pnpm --dir frontend install
 
 #### Run backend:
 
-You can run the backend using FastAPI:
+**You can run the backend using FastAPI:**
+
+- for pip users
 
 ```bash
 fastapi dev backend/main.py
 ```
 
-Or directly with Uvicorn:
+- for uv users
+
+```bash
+uv run --project backend fastapi dev backend/main.py
+```
+
+**Or directly with Uvicorn:**
+
+- for pip users
 
 ```bash
 uvicorn backend.main:app --reload
+```
+
+- for uv users
+
+```bash
+uv run --project backend uvicorn backend.main:app --reload
 ```
 
 #### Run frontend:
@@ -194,3 +209,7 @@ The `.dockerignore` file is used during the image build process to exclude unnec
 This README provides instructions for running the project both in a Dockerized environment and natively, along with useful Docker commands and explanations of how build caching and volumes work.
 
 Happy coding!
+
+```
+
+```
