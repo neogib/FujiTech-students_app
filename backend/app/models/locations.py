@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from .schools import Szkola
+    from app.models.schools import Szkola
 
 
 class WojewodztwoBase(SQLModel):
