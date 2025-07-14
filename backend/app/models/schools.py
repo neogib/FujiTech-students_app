@@ -138,10 +138,6 @@ class SzkolaAllData(SzkolaExtendedData):
     ulica_id: int | None = Field(index=True, default=None, foreign_key="ulica.id")
 
 
-class SzkolaPublic(SzkolaAllData):
-    id: int
-
-
 class Szkola(SzkolaAllData, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
@@ -163,3 +159,16 @@ class Szkola(SzkolaAllData, table=True):
     )
     wyniki_e8: list["WynikE8"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
     wyniki_em: list["WynikEM"] = Relationship(back_populates="szkola")  # pyright: ignore [reportAny]
+
+
+class SzkolaPublic(SzkolaAllData):
+    id: int
+
+
+class SzkolaPublicShort(SzkolaBase):
+    id: int
+    geolokalizacja_latitude: float
+    geolokalizacja_longitude: float
+    score: float
+    typ: TypSzkolyPublic
+    status_publicznoprawny: StatusPublicznoprawnyPublic

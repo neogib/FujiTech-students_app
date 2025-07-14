@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 
 from app.core.database import get_session
 from app.models.locations import Gmina, Miejscowosc, Powiat
-from app.models.schools import Szkola, SzkolaPublic
+from app.models.schools import Szkola, SzkolaPublic, SzkolaPublicShort
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
@@ -15,7 +15,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{school_id}")
+@router.get("/{school_id}", response_model=SzkolaPublic)
 async def get_school(school_id: int, session: SessionDep) -> Szkola:
     school = session.get(Szkola, school_id)
     if not school:
@@ -23,7 +23,7 @@ async def get_school(school_id: int, session: SessionDep) -> Szkola:
     return school
 
 
-@router.get("/", response_model=list[SzkolaPublic])
+@router.get("/", response_model=list[SzkolaPublicShort])
 async def get_schools(
     session: SessionDep,
     skip: int = 0,
@@ -32,7 +32,7 @@ async def get_schools(
 ):
     if voivodeship_id:
         statement = (
-            select(Szkola, Miejscowosc, Gmina, Powiat)
+            select(Szkola)
             .join(Miejscowosc)
             .join(Gmina)
             .join(Powiat)
