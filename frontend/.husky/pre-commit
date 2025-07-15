@@ -1,2 +1,3 @@
+cd frontend
 pnpm format
 pnpm lint:fix
