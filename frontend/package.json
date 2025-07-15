@@ -27,6 +27,8 @@
 	},
 	"devDependencies": {
 		"@rollup/rollup-linux-arm64-gnu": "^4.36.0",
+		"eslint-config-prettier": "^10.1.5",
+		"prettier": "3.6.2",
 		"typescript": "^5.8.3"
 	}
 }
