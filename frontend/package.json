@@ -12,7 +12,8 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"prepare": "husky"
 	},
 	"dependencies": {
 		"@nuxt/eslint": "1.5.2",
@@ -30,6 +31,7 @@
 	"devDependencies": {
 		"@rollup/rollup-linux-arm64-gnu": "^4.36.0",
 		"eslint-config-prettier": "^10.1.5",
+		"husky": "^9.1.7",
 		"prettier": "3.6.2",
 		"typescript": "^5.8.3"
 	}
