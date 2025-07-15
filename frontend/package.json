@@ -10,7 +10,9 @@
 		"postinstall": "nuxt prepare",
 		"preinstall": "npx only-allow pnpm",
 		"lint": "eslint .",
-		"lint:fix": "eslint . --fix"
+		"lint:fix": "eslint . --fix",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
 	},
 	"dependencies": {
 		"@nuxt/eslint": "1.5.2",
