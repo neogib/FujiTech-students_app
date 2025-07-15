@@ -1,1 +1,2 @@
-npm test
+pnpm format
+pnpm lint:fix
