@@ -1,5 +1,4 @@
 {
-	"tabWidth": 4,
-	"useTabs": true,
-	"bracketSameLine": true
+    "tabWidth": 4,
+    "bracketSameLine": true
 }
