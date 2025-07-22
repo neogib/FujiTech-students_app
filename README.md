@@ -1,4 +1,4 @@
-# FujiTech-students_app
+# Roddenberry_schools_app
 
 This repository contains an app made by FujiTech students participating in a mentoring program.
 
