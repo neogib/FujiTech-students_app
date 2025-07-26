@@ -1,23 +1,34 @@
 services:
   backend:
     build:
-      context: ./backend
+      context: ./backend # Use the Dockerfile in ./backend to build the backend image
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8000:8000" # Expose container port 8000 on host port 8000
     volumes:
+      # Mount your local backend code into the container for hot‐reload
       - ./backend:/app/backend
+      # Persist the Python virtualenv here so dependencies survive code mounts
+      - backend-venv:/app/backend/.venv
+    env_file:
+      - ./backend/.env
     environment:
-      - PYTHONUNBUFFERED=1
+      - PYTHONUNBUFFERED=1 # Disable Python output buffering for real‐time logs
 
   frontend:
     build:
-      context: ./frontend
+      context: ./frontend # Build the frontend image from ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:3000" # Expose container port 3000 on host port 3000
     volumes:
+      # Mount your local frontend code for hot‐reload
       - ./frontend:/app/frontend
-      - /app/frontend/node_modules
+      # Persist node_modules in a named volume to avoid host overwrites
+      - frontend-node-modules:/app/frontend/node_modules
     environment:
-      - NUXT_PUBLIC_API_BASE=http://backend:8000
+      - NUXT_PUBLIC_API_BASE=http://backend:8000 # Point Nuxt to the backend service
+
+volumes:
+  backend-venv: # Named volume to store Python .venv dependencies
+  frontend-node-modules: # Named volume to store node_modules dependencies
