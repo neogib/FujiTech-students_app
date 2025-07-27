@@ -15,6 +15,20 @@ This repository contains an app made by FujiTech students participating in a men
 
 Scrum, 2-week sprints
 
+## 🗄️ Database Configuration
+
+### PostgreSQL Environment Variables
+
+Set PostgreSQL credentials in `backend/app/core/.env`, format:
+
+```ini
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_SERVER=
+POSTGRES_PORT=
+POSTGRES_DB=
+```
+
 ---
 
 ## 🐳 Running the project with Docker
