@@ -1,18 +1,16 @@
-FROM python:3.13-slim-bookworm
+# Use official uv image that already includes Python + uv
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 
 # Set working directory inside container
 WORKDIR /app/backend
 
-# Copy only files needed for installing dependencies
+# Copy only project manifests first (helps with layer caching)
 COPY pyproject.toml uv.lock* ./
 
-# Install dependencies with uv into .venv
-RUN pip install --upgrade pip uv \
-    && uv sync --project .
-
-# Add the venv's bin directory to PATH so that `python` and `uvicorn` from .venv are used
+# Where the virtualenv will live (persisted via the named volume)
 ENV VENV_PATH=/app/backend/.venv
-ENV PATH="$VENV_PATH/bin:$PATH"
+# Make sure venv's bin is first on PATH (even before it exists)
+ENV PATH="${VENV_PATH}/bin:${PATH}"
 
 # Copy the rest of the backend code
 COPY . .
@@ -20,5 +18,6 @@ COPY . .
 # Expose backend port
 EXPOSE 8000
 
-# Run backend with autoreload (now using uvicorn from .venv)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# On first run: if .venv is missing (fresh volume), install exactly what's in uv.lock;
+# then start the app using the venv via `uv run`.
+CMD ["/bin/sh", "-lc", "test -x \"$VENV_PATH/bin/python\" || uv sync --frozen; uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload"]
