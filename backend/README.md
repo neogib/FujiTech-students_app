@@ -22,6 +22,20 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install .
 ```
 
+## Database Configuration
+
+### PostgreSQL Environment Variables
+
+Set PostgreSQL credentials in `app/core/.env`, format:
+
+```ini
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_SERVER=
+POSTGRES_PORT=
+POSTGRES_DB=
+```
+
 ## Running the Project
 
 ### You can run backend with FastAPI
