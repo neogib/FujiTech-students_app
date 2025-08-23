@@ -22,13 +22,25 @@ services:
     ports:
       - "3000:3000" # Expose container port 3000 on host port 3000
     volumes:
-      # Mount your local frontend code for hot‐reload
+      # Bind-mount your local frontend code for hot reload
       - ./frontend:/app/frontend
-      # Persist node_modules in a named volume to avoid host overwrites
+      # Keep node_modules off the host to avoid permission/OS differences
       - frontend-node-modules:/app/frontend/node_modules
+      # Keep pnpm store off the host to avoid permission/OS differences
+      - frontend-pnpm-store:/pnpm-store
     environment:
-      - NUXT_PUBLIC_API_BASE=http://backend:8000 # Point Nuxt to the backend service
+      - PNPM_STORE_DIR=/pnpm-store # PNPM store directory
+      # Make file watching robust on Docker Desktop (macOS/Windows)
+      - CHOKIDAR_USEPOLLING=1 # Vite/Chokidar: use polling instead of FS events
+      - CHOKIDAR_INTERVAL=300 # (optional) Poll every 300ms; tweak if CPU is high
+      - NITRO_POLLING=1 # Nuxt Nitro: poll for server-side file changes
+      # Expose API base via Nuxt public runtime config
+      - NUXT_PUBLIC_API_BASE=http://backend:8000
+    # Ensure the dev server listens on all interfaces inside the container
+    # so the host port mapping can reach it.
+    command: ["pnpm", "dev", "--host", "0.0.0.0"]
 
 volumes:
   backend-venv: # Named volume to store Python .venv dependencies
   frontend-node-modules: # Named volume to store node_modules dependencies
+  frontend-pnpm-store: # Named volume to store pnpm store dependencies

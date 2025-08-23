@@ -9,9 +9,6 @@ RUN npm install -g pnpm
 # Copy dependency definitions from the current context (./frontend)
 COPY package.json pnpm-lock.yaml* ./
 
-# Install dependencies (this creates node_modules in the image)
-RUN pnpm install
-
 # Copy the rest of the application source code from the current context
 COPY . .
 
