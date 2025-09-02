@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import { defineNuxtConfig } from "nuxt/config";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -9,6 +10,12 @@ export default defineNuxtConfig({
         public: {
             apiBase: process.env.NUXT_PUBLIC_API_BASE || "/api",
         },
+    },
+
+    // Add tailwind as Vite plugin
+    css: ["~/assets/css/main.css"],
+    vite: {
+        plugins: [tailwindcss()],
     },
 
     modules: ["@nuxt/eslint"],
