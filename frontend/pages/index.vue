@@ -11,6 +11,7 @@ const { data, error, status } = useApi<BackendResponse>("/users");
 <template>
     <div>
         <h1>Test połączenia z backendem</h1>
+        <h1>Test połączenia z backendem</h1>
         <div v-if="status === 'pending'">Ładowanie...</div>
         <div v-else-if="error">Błąd: {{ error }}</div>
         <div v-else>
