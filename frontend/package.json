@@ -10,18 +10,19 @@
         "postinstall": "nuxt prepare",
         "preinstall": "npx only-allow pnpm",
         "lint": "eslint .",
-        "lint:fix": "eslint . --fix",
+        "lint:fix": "eslint --fix .",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "prepare": "cd .. && husky frontend/.husky",
         "lint-staged": "lint-staged"
     },
     "lint-staged": {
-        "frontend/**/*.{js,ts,vue}": [
-            "pnpm -C frontend eslint --fix"
+        "**/*.{js,ts,vue}": [
+            "eslint --fix",
+            "prettier -w --"
         ],
-        "frontend/**/*.{css,scss,html,md,json}": [
-            "pnpm -C frontend prettier -w"
+        "**/*.{css,scss,html,md,json}": [
+            "prettier -w --"
         ]
     },
     "dependencies": {
