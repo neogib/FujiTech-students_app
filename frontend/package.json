@@ -14,15 +14,14 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "prepare": "cd .. && husky frontend/.husky",
-        "lint-staged": "cd .. && lint-staged"
+        "lint-staged": "lint-staged"
     },
     "lint-staged": {
-        "*.{js,ts,vue}": [
-            "pnpm -C frontend lint:fix",
-            "pnpm -C frontend format"
+        "frontend/**/*.{js,ts,vue}": [
+            "pnpm -C frontend eslint --fix"
         ],
-        "*.{css,scss,html,md,json}": [
-            "pnpm -C frontend format"
+        "frontend/**/*.{css,scss,html,md,json}": [
+            "pnpm -C frontend prettier -w"
         ]
     },
     "dependencies": {
