@@ -13,7 +13,6 @@ export default withNuxt({
         "**/.vscode/**",
         "**/.idea/**",
         "**/.DS_Store",
-        "**/pnpm-lock.yaml",
     ],
     rules: {
         "no-else-return": 2,
