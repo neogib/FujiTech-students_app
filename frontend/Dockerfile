@@ -1,17 +1,19 @@
+
 FROM node:20
 
-# Set the working directory for the frontend
 WORKDIR /app/frontend
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Użyj corepack zamiast npm -g pnpm (stabilniej i wersjonowalnie)
+RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 
-# Copy dependency definitions from the current context (./frontend)
+# Manifesty osobno (cache warstw)
 COPY package.json pnpm-lock.yaml* ./
 
-# Copy the rest of the application source code from the current context
+# Reszta źródeł
 COPY . .
 
 EXPOSE 3000
 
-CMD ["pnpm", "dev"]
+# Jeśli brakuje node_modules -> zainstaluj; potem odpal dev na wszystkich interfejsach
+CMD ["/bin/sh","-lc","set -e; if [ ! -x node_modules/.bin/nuxt ]; then echo '→ Installing deps…'; pnpm install --frozen-lockfile; fi; exec pnpm dev"]
+
