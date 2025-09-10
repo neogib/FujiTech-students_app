@@ -15,13 +15,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
-                        <a
-                            v-for="link in navigationLinks"
-                            :key="link.href"
-                            :href="link.href"
-                            class="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200">
-                            {{ link.label }}
-                        </a>
+                        <NavLinks />
                     </div>
                 </div>
 
@@ -72,15 +66,10 @@
                 <div
                     v-if="isMobileMenuOpen"
                     class="md:hidden bg-white border-t border-gray-200 shadow-lg">
-                    <div class="px-2 pt-2 pb-3 space-y-1">
-                        <a
-                            v-for="link in navigationLinks"
-                            :key="link.href"
-                            :href="link.href"
-                            class="text-gray-700 hover:text-indigo-600 hover:bg-gray-50 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                            @click="closeMobileMenu">
-                            {{ link.label }}
-                        </a>
+                    <div
+                        class="px-2 pt-2 pb-3 space-y-1"
+                        @click="closeMobileMenu">
+                        <NavLinks />
                     </div>
                 </div>
             </Transition>
@@ -91,27 +80,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-// Navigation links data
-const navigationLinks = ref([
-    { href: "#", label: "Strona główna" },
-    { href: "#", label: "Mapa" },
-    { href: "#", label: "O nas" },
-    { href: "#", label: "Kontakt" },
-]);
-
-// Mobile menu state
 const isMobileMenuOpen = ref(false);
 
-/**
- * Toggle mobile menu visibility
- */
+// Toggle mobile menu visibility
 const toggleMobileMenu = () => {
     isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
 
-/**
- * Close mobile menu when link is clicked
- */
+// Close mobile menu when dropdown item is clicked
 const closeMobileMenu = () => {
     isMobileMenuOpen.value = false;
 };

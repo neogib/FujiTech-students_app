@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-// import VoivodeshipsMap from "~/components/VoivodeshipsMap.vue";
 import { voivodeshipNames } from "~/data/voivodeships";
-// import NavBar from "~/components/NavBar.vue";
 
 // State to manage mobile menu visibility
 const isMobileMenuOpen = ref(false);
