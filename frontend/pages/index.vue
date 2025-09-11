@@ -5,7 +5,6 @@ import { voivodeshipNames } from "~/data/voivodeships";
 // State to manage mobile menu visibility
 const isMobileMenuOpen = ref(false);
 
-// Define reactive data for form
 const selectedSchoolType = ref<string>("");
 const selectedVoivodeship = ref<string>("");
 
@@ -25,16 +24,12 @@ const handleVoivodeshipSelect = (voivodeshipId: string) => {
     selectedVoivodeship.value = voivodeshipId;
 };
 
-/**
- * Handle form submission
- */
 const handleSubmit = () => {
     if (!selectedSchoolType.value || !selectedVoivodeship.value) {
         alert("Proszę wybrać typ szkoły i województwo");
         return;
     }
 
-    // Log the selections to console as requested
     console.log("Typ szkoły:", selectedSchoolType.value);
     console.log("Województwo:", selectedVoivodeship.value);
 
