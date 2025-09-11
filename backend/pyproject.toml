@@ -21,6 +21,8 @@ dev = [
     "basedpyright>=1.28.4",
     "debugpy>=1.8.12",
     "ruff>=0.9.9",
+    "pytest>=8.3.3",
+    "pytest-cov>=5.0.0",
 ]
 
 [tool.ruff.lint]
@@ -46,3 +48,6 @@ reportUnusedFunction = "none"
 reportUnusedClass = "none"
 reportUnusedExpression = "none"
 reportImportCycles = "none" # using ORMs it is almost impossible to avoid cycles
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
