@@ -2,13 +2,12 @@
 import { ref } from "vue";
 import { voivodeshipNames } from "~/data/voivodeships";
 
-// State to manage mobile menu visibility
 const isMobileMenuOpen = ref(false);
 
 const selectedSchoolType = ref<string>("");
 const selectedVoivodeship = ref<string>("");
 
-// School types available in Polish
+// Available school types
 const schoolTypes = [
     { value: "przedszkole", label: "Przedszkole" },
     { value: "szkola-podstawowa", label: "Szkoła podstawowa" },
@@ -16,10 +15,6 @@ const schoolTypes = [
     { value: "technikum", label: "Technikum" },
 ];
 
-/**
- * Handle voivodeship selection from the map
- * @param voivodeshipId - ID of the selected voivodeship
- */
 const handleVoivodeshipSelect = (voivodeshipId: string) => {
     selectedVoivodeship.value = voivodeshipId;
 };
@@ -37,9 +32,6 @@ const handleSubmit = () => {
     console.log("Przekierowanie do strony mapy...");
 };
 
-/**
- * Reset form selections
- */
 const resetForm = () => {
     selectedSchoolType.value = "";
     selectedVoivodeship.value = "";

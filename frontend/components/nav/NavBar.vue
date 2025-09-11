@@ -15,7 +15,7 @@
                 <!-- Navigation Links -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-8">
-                        <NavLinks />
+                        <NavLinks :is-display-block="false" />
                     </div>
                 </div>
 
@@ -69,7 +69,7 @@
                     <div
                         class="px-2 pt-2 pb-3 space-y-1"
                         @click="closeMobileMenu">
-                        <NavLinks />
+                        <NavLinks :is-display-block="true" />
                     </div>
                 </div>
             </Transition>
