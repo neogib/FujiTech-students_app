@@ -56,8 +56,8 @@ const resetForm = () => {
                 <p
                     class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                     Znajdź najlepsze szkoły w swojej okolicy. Porównuj wyniki,
-                    sprawdzaj rankingi i podejmuj świadome decyzje edukacyjne
-                    dla swojego dziecka.
+                    sprawdzaj rankingi i podejmuj świadome decyzje dotyczące
+                    dalszej edukacji.
                 </p>
             </div>
 
@@ -205,19 +205,11 @@ const resetForm = () => {
                     </h2>
                     <div class="grid md:grid-cols-3 gap-8 mt-8">
                         <div class="text-center">
-                            <div
-                                class="bg-white bg-opacity-20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg
-                                    class="h-8 w-8"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
+                            <div class="mx-auto mb-4">
+                                <img
+                                    src="~/assets/images/up-to-date_data.png"
+                                    alt="Aktualne dane"
+                                    class="w-24 h-24 rounded-full mx-auto object-cover border-white border-opacity-30" />
                             </div>
                             <h3 class="text-xl font-semibold mb-2">
                                 Aktualne dane
@@ -228,24 +220,11 @@ const resetForm = () => {
                             </p>
                         </div>
                         <div class="text-center">
-                            <div
-                                class="bg-white bg-opacity-20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg
-                                    class="h-8 w-8"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
+                            <div class="mx-auto mb-4">
+                                <img
+                                    src="~/assets/images/location.png"
+                                    alt="Lokalizacja"
+                                    class="w-24 h-24 rounded-full mx-auto object-cover border-2 border-white border-opacity-30" />
                             </div>
                             <h3 class="text-xl font-semibold mb-2">
                                 Lokalizacja
@@ -256,19 +235,11 @@ const resetForm = () => {
                             </p>
                         </div>
                         <div class="text-center">
-                            <div
-                                class="bg-white bg-opacity-20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg
-                                    class="h-8 w-8"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
+                            <div class="mx-auto mb-4">
+                                <img
+                                    src="~/assets/images/school_comparison.png"
+                                    alt="Łatwa porównywarka"
+                                    class="w-24 h-24 rounded-full mx-auto object-cover border-2 border-white border-opacity-30" />
                             </div>
                             <h3 class="text-xl font-semibold mb-2">
                                 Łatwa porównywarka
