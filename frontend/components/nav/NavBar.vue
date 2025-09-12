@@ -1,5 +1,5 @@
 <template>
-    <nav class="sticky top-0 z-50 bg-white shadow-lg border-b border-gray-200">
+    <nav class="sticky top-0 z-50 bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo/Brand -->
@@ -63,9 +63,7 @@
                 leave-active-class="transition duration-150 ease-in"
                 leave-from-class="transform scale-100 opacity-100"
                 leave-to-class="transform scale-95 opacity-0">
-                <div
-                    v-if="isMobileMenuOpen"
-                    class="md:hidden bg-white border-t border-gray-200 shadow-lg">
+                <div v-if="isMobileMenuOpen" class="md:hidden bg-white">
                     <div
                         class="px-2 pt-2 pb-3 space-y-1"
                         @click="closeMobileMenu">
