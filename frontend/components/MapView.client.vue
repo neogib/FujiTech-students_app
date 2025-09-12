@@ -1,5 +1,5 @@
 <template>
-    <MglMap :map-style="style" :center="center" :zoom="zoom" height="500px">
+    <MglMap :map-style="style" :center="center" :zoom="zoom" height="100vh">
         <MglNavigationControl />
     </MglMap>
 </template>
