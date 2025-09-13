@@ -3,7 +3,7 @@
         ref="triangle"
         src="~/assets/images/triangle.svg"
         alt="triangle"
-        class="hidden w-[50px]" />
+        class="hidden" />
     <MglMap
         :map-style="style"
         :center="center"
@@ -12,12 +12,28 @@
         @map:load="onMapLoaded">
         <MglNavigationControl />
 
-        <mgl-image id="custom-marker" :image="triangle as HTMLImageElement" />
+        <mgl-image
+            id="custom-marker"
+            :image="triangle as HTMLImageElement"
+            :options="{ sdf: true }" />
 
         <!-- Add your MglSource and MglLayer components here -->
         <MglGeoJsonSource source-id="my-data-source" :data="geoJsonSource">
             <MglSymbolLayer
                 layer-id="my-interactive-layer"
+                :paint="{
+                    'icon-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'score'],
+                        0,
+                        '#FF0000', // red at 0
+                        50,
+                        '#FFFF00', // yellow at 50
+                        100,
+                        '#00FF00', // green at 100
+                    ],
+                }"
                 :layout="{
                     'icon-image': 'custom-marker',
                     'icon-overlap': 'always',
@@ -47,19 +63,28 @@ const center: [number, number] = [-77.04, 38.907];
 const zoom = 11.15;
 
 const onMapLoaded = (event: { map: maplibregl.Map }) => {
-    let currentFeatureCoordinates = undefined;
+    let currentFeatureCoordinates: string | undefined = undefined;
     const map = event.map;
     map.on("mousemove", "my-interactive-layer", (e) => {
-        const features = e.features?.[0];
-        const featureCoordinates = features.geometry.coordinates.toString();
+        const feature_collection = e.features?.[0];
+        if (
+            !feature_collection ||
+            feature_collection.geometry.type !== "Point"
+        ) {
+            return;
+        }
+
+        // Type assertion since we've already checked that geometry.type is 'Point'
+        const pointGeometry = feature_collection.geometry;
+        const featureCoordinates = pointGeometry.coordinates.toString();
         if (currentFeatureCoordinates !== featureCoordinates) {
             currentFeatureCoordinates = featureCoordinates;
 
             // Change the cursor style as a UI indicator.
             map.getCanvas().style.cursor = "pointer";
 
-            const coordinates = e.features[0].geometry.coordinates.slice();
-            const description = e.features[0].properties.description;
+            const coordinates = pointGeometry.coordinates.slice();
+            const description = feature_collection.properties?.description;
 
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
@@ -70,8 +95,10 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
 
             // Populate the popup and set its coordinates
             // based on the feature found.
-
-            popup.setLngLat(coordinates).setHTML(description).addTo(map);
+            popup
+                .setLngLat(coordinates as [number, number])
+                .setHTML(description)
+                .addTo(map);
         }
     });
 
@@ -99,6 +126,7 @@ const geoJsonSource = {
         {
             type: "Feature",
             properties: {
+                score: 95,
                 description:
                     "<strong>Mad Men Season Five Finale Watch Party</strong><p>Head to Lounge 201 (201 Massachusetts Avenue NE) Sunday for a Mad Men Season Five Finale Watch Party, complete with 60s costume contest, Mad Men trivia, and retro food and drink. 8:00-11:00 p.m. $10 general admission, $20 admission and two hour open bar.</p>",
             },
