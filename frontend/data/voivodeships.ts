@@ -18,4 +18,4 @@ export const voivodeshipNames: Record<string, string> = {
     "warminsko-mazurskie": "Warmińsko-mazurskie",
     wielkopolskie: "Wielkopolskie",
     "zachodnio-pomorskie": "Zachodniopomorskie",
-};
+}

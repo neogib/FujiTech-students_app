@@ -76,17 +76,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from "vue"
 
-const isMobileMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false)
 
 // Toggle mobile menu visibility
 const toggleMobileMenu = () => {
-    isMobileMenuOpen.value = !isMobileMenuOpen.value;
-};
+    isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
 
 // Close mobile menu when dropdown item is clicked
 const closeMobileMenu = () => {
-    isMobileMenuOpen.value = false;
-};
+    isMobileMenuOpen.value = false
+}
 </script>

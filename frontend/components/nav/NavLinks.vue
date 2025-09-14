@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { navigationLinks } from "~/data/links";
+import { navigationLinks } from "~/data/links"
 
 const props = defineProps({
     isDisplayBlock: Boolean,
-});
+})
 </script>
 
 <template>

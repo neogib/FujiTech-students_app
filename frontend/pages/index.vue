@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { voivodeshipNames } from "~/data/voivodeships";
+import { ref } from "vue"
+import { voivodeshipNames } from "~/data/voivodeships"
 
-const isMobileMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false)
 
-const selectedSchoolType = ref<string>("");
-const selectedVoivodeship = ref<string>("");
+const selectedSchoolType = ref<string>("")
+const selectedVoivodeship = ref<string>("")
 
 // Available school types
 const schoolTypes = [
@@ -13,29 +13,29 @@ const schoolTypes = [
     { value: "szkola-podstawowa", label: "Szkoła podstawowa" },
     { value: "liceum", label: "Liceum" },
     { value: "technikum", label: "Technikum" },
-];
+]
 
 const handleVoivodeshipSelect = (voivodeshipId: string) => {
-    selectedVoivodeship.value = voivodeshipId;
-};
+    selectedVoivodeship.value = voivodeshipId
+}
 
 const handleSubmit = () => {
     if (!selectedSchoolType.value || !selectedVoivodeship.value) {
-        alert("Proszę wybrać typ szkoły i województwo");
-        return;
+        alert("Proszę wybrać typ szkoły i województwo")
+        return
     }
 
-    console.log("Typ szkoły:", selectedSchoolType.value);
-    console.log("Województwo:", selectedVoivodeship.value);
+    console.log("Typ szkoły:", selectedSchoolType.value)
+    console.log("Województwo:", selectedVoivodeship.value)
 
     // Here would be the redirect to map page in the future
-    console.log("Przekierowanie do strony mapy...");
-};
+    console.log("Przekierowanie do strony mapy...")
+}
 
 const resetForm = () => {
-    selectedSchoolType.value = "";
-    selectedVoivodeship.value = "";
-};
+    selectedSchoolType.value = ""
+    selectedVoivodeship.value = ""
+}
 </script>
 
 <template>

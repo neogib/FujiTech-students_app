@@ -1,13 +1,13 @@
 <script setup lang="ts">
-const emit = defineEmits(["path-click"]);
+const emit = defineEmits(["path-click"])
 
 // Define a function to handle clicks on the path elements
 function handlePathClick(event: MouseEvent) {
-    const target = event.target as SVGPathElement;
-    const pathId = target.id; // Extract the `id` of the clicked path element
+    const target = event.target as SVGPathElement
+    const pathId = target.id // Extract the `id` of the clicked path element
 
     // Emit the 'path-click' event with the path ID
-    emit("path-click", pathId);
+    emit("path-click", pathId)
 }
 </script>
 

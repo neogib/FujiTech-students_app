@@ -1,5 +1,5 @@
-import tailwindcss from "@tailwindcss/vite";
-import { defineNuxtConfig } from "nuxt/config";
+import tailwindcss from "@tailwindcss/vite"
+import { defineNuxtConfig } from "nuxt/config"
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
     compatibilityDate: "2025-08-23",
@@ -19,4 +19,4 @@ export default defineNuxtConfig({
     },
 
     modules: ["@nuxt/eslint", "nuxt-maplibre"],
-});
+})
