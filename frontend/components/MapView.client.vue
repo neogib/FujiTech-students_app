@@ -54,6 +54,7 @@ import {
     MglSymbolLayer,
 } from "@indoorequal/vue-maplibre-gl"
 import maplibregl from "maplibre-gl"
+import type { FeatureCollection, Feature, Point } from "geojson"
 
 const triangle = useTemplateRef("triangle")
 const popup = new maplibregl.Popup({
@@ -66,8 +67,8 @@ const center: [number, number] = [-77.04, 38.907]
 const zoom = 11.15
 
 const onMapLoaded = (event: { map: maplibregl.Map }) => {
-    let currentFeatureCoordinates: string | undefined = undefined
     const map = event.map
+    let currentFeatureCoordinates: string | undefined = undefined
     map.on("mousemove", "my-interactive-layer", (e) => {
         const feature_collection = e.features?.[0]
         if (
@@ -112,16 +113,22 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
     })
 }
 
-const features = []
+// Define custom properties interface for our school data
+interface SchoolProperties {
+    score: number
+    description: string
+}
+
+// Create properly typed features array
+const features: Feature<Point, SchoolProperties>[] = []
 
 for (let i = 0; i < 100; i++) {
+    const randomScore = Math.floor(Math.random() * 101)
     features.push({
         type: "Feature",
         properties: {
-            score: Math.floor(Math.random() * 101), // Random score between 0 and 100
-            description: `<strong>Random Point ${i + 1}</strong><p>This is a randomly generated point with a score of ${Math.floor(
-                Math.random() * 101,
-            )}.</p>`,
+            score: randomScore,
+            description: `<strong>Random Point ${i + 1}</strong><p>This is a randomly generated point with a score of ${randomScore}.</p>`,
         },
         geometry: {
             type: "Point",
@@ -133,7 +140,8 @@ for (let i = 0; i < 100; i++) {
     })
 }
 
-const geoJsonSource = {
+// Properly type the GeoJSON source as FeatureCollection
+const geoJsonSource: FeatureCollection<Point, SchoolProperties> = {
     type: "FeatureCollection",
     features: features,
 }

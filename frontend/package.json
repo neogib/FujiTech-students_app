@@ -50,6 +50,7 @@
     },
     "devDependencies": {
         "@rollup/rollup-linux-arm64-gnu": "^4.36.0",
+        "@types/geojson": "^7946.0.16",
         "@vitejs/plugin-vue": "^5.1.4",
         "@vitest/coverage-v8": "^2.1.5",
         "@vue/test-utils": "^2.4.6",

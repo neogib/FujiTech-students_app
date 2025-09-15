@@ -94,10 +94,8 @@ interface Props {
     transparent?: boolean
 }
 
-// directly destructuring props to eliminate unused variable
-const { transparent } = withDefaults(defineProps<Props>(), {
-    transparent: false,
-})
+// directly destructuring props with default values
+const { transparent = false } = defineProps<Props>()
 
 const isMobileMenuOpen = ref(false)
 
