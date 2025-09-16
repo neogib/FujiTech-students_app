@@ -1,72 +1,48 @@
-<template>
-    <img
-        ref="triangle"
-        src="~/assets/images/triangle.svg"
-        alt="triangle"
-        class="hidden" />
-    <MglMap
-        :map-style="style"
-        :center="center"
-        :zoom="zoom"
-        height="100vh"
-        @map:load="onMapLoaded">
-        <MglNavigationControl />
-
-        <mgl-image
-            id="custom-marker"
-            :image="triangle as HTMLImageElement"
-            :options="{ sdf: true }" />
-
-        <!-- Add your MglSource and MglLayer components here -->
-        <MglGeoJsonSource
-            source-id="my-data-source"
-            :data="geoJsonSource"
-            :cluster="true">
-            <MglSymbolLayer
-                layer-id="my-interactive-layer"
-                :paint="{
-                    'icon-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['get', 'score'],
-                        0,
-                        '#FF0000', // red at 0
-                        50,
-                        '#FFFF00', // yellow at 50
-                        100,
-                        '#00FF00', // green at 100
-                    ],
-                }"
-                :layout="{
-                    'icon-image': 'custom-marker',
-                    'icon-overlap': 'always',
-                }" />
-        </MglGeoJsonSource>
-    </MglMap>
-</template>
-
 <script setup lang="ts">
-import "maplibre-gl/dist/maplibre-gl.css"
-import {
-    MglMap,
-    MglNavigationControl,
-    MglGeoJsonSource,
-    MglSymbolLayer,
-} from "@indoorequal/vue-maplibre-gl"
 import maplibregl from "maplibre-gl"
+import triangleIconUrl from "~/assets/images/triangle_small.png"
 import type { FeatureCollection, Feature, Point } from "geojson"
-
-const triangle = useTemplateRef("triangle")
-const popup = new maplibregl.Popup({
-    closeButton: false,
-    closeOnClick: false,
-})
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
 const center: [number, number] = [-77.04, 38.907]
 const zoom = 11.15
 
+interface SchoolProperties {
+    score: number
+    description: string
+}
+
+const features: Feature<Point, SchoolProperties>[] = []
+
+for (let i = 0; i < 100; i++) {
+    const randomScore = Math.floor(Math.random() * 101)
+    features.push({
+        type: "Feature",
+        properties: {
+            score: randomScore,
+            description: `<strong>Random Point ${i + 1}</strong><p>This is a randomly generated point with a score of ${randomScore}.</p>`,
+        },
+        geometry: {
+            type: "Point",
+            coordinates: [
+                -77.04 + (Math.random() - 0.5) * 0.2, // Random longitude around center
+                38.907 + (Math.random() - 0.5) * 0.2, // Random latitude around center
+            ],
+        },
+    })
+}
+
+// Properly type the GeoJSON source as FeatureCollection
+const geoJsonSource: FeatureCollection<Point, SchoolProperties> = {
+    type: "FeatureCollection",
+    features: features,
+}
+
 const onMapLoaded = (event: { map: maplibregl.Map }) => {
+    const popup = new maplibregl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+    })
     const map = event.map
     let currentFeatureCoordinates: string | undefined = undefined
     map.on("mousemove", "my-interactive-layer", (e) => {
@@ -112,37 +88,46 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         popup.remove()
     })
 }
-
-// Define custom properties interface for our school data
-interface SchoolProperties {
-    score: number
-    description: string
-}
-
-// Create properly typed features array
-const features: Feature<Point, SchoolProperties>[] = []
-
-for (let i = 0; i < 100; i++) {
-    const randomScore = Math.floor(Math.random() * 101)
-    features.push({
-        type: "Feature",
-        properties: {
-            score: randomScore,
-            description: `<strong>Random Point ${i + 1}</strong><p>This is a randomly generated point with a score of ${randomScore}.</p>`,
-        },
-        geometry: {
-            type: "Point",
-            coordinates: [
-                -77.04 + (Math.random() - 0.5) * 0.2, // Random longitude around center
-                38.907 + (Math.random() - 0.5) * 0.2, // Random latitude around center
-            ],
-        },
-    })
-}
-
-// Properly type the GeoJSON source as FeatureCollection
-const geoJsonSource: FeatureCollection<Point, SchoolProperties> = {
-    type: "FeatureCollection",
-    features: features,
-}
 </script>
+<template>
+    <MglMap
+        :map-style="style"
+        :center="center"
+        :zoom="zoom"
+        height="100vh"
+        @map:load="onMapLoaded">
+        <MglNavigationControl />
+
+        <mgl-image
+            id="triangle_sdf"
+            :url="triangleIconUrl"
+            :options="{ sdf: true }" />
+
+        <!-- Add your MglSource and MglLayer components here -->
+        <MglGeoJsonSource
+            source-id="my-data-source"
+            :data="geoJsonSource"
+            :cluster="true">
+            <MglSymbolLayer
+                layer-id="my-interactive-layer"
+                :paint="{
+                    'icon-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['get', 'score'],
+                        0,
+                        '#FF0000', // red at 0
+                        50,
+                        '#FFFF00', // yellow at 50
+                        100,
+                        '#00FF00', // green at 100
+                    ],
+                }"
+                :layout="{
+                    'icon-image': 'triangle_sdf',
+                    'icon-overlap': 'always',
+                }" />
+        </MglGeoJsonSource>
+        j
+    </MglMap>
+</template>
