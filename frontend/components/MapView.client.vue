@@ -12,6 +12,11 @@ interface SchoolProperties {
     description: string
 }
 
+// Define emits for the component
+const emit = defineEmits<{
+    "point-clicked": [feature: Feature<Point, SchoolProperties>]
+}>()
+
 const features: Feature<Point, SchoolProperties>[] = []
 
 for (let i = 0; i < 100; i++) {
@@ -87,6 +92,25 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         map.getCanvas().style.cursor = ""
         popup.remove()
     })
+
+    // Add click event handler
+    map.on("click", "my-interactive-layer", (e) => {
+        const feature_collection = e.features?.[0]
+        if (
+            !feature_collection ||
+            feature_collection.geometry.type !== "Point"
+        ) {
+            return
+        }
+
+        // Type the feature properly and emit the click event
+        // Convert to unknown first to safely cast from MapGeoJSONFeature to our specific type
+        const clickedFeature = feature_collection as unknown as Feature<
+            Point,
+            SchoolProperties
+        >
+        emit("point-clicked", clickedFeature)
+    })
 }
 </script>
 <template>
@@ -128,6 +152,5 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                     'icon-overlap': 'always',
                 }" />
         </MglGeoJsonSource>
-        j
     </MglMap>
 </template>
