@@ -131,14 +131,25 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         <MglGeoJsonSource
             source-id="my-data-source"
             :data="geoJsonSource"
-            :cluster="true">
+            :cluster="true"
+            :cluster-properties="{
+                // Calculate sum of scores
+                sum: ['+', ['get', 'score']],
+            }">
             <MglSymbolLayer
                 layer-id="my-interactive-layer"
                 :paint="{
                     'icon-color': [
                         'interpolate',
                         ['linear'],
-                        ['get', 'score'],
+                        [
+                            'case',
+                            ['has', 'cluster'],
+                            // If it's a cluster, calculate average: sum / point_count
+                            ['/', ['get', 'sum'], ['get', 'point_count']],
+                            // If it's not a cluster, use the regular score
+                            ['get', 'score'],
+                        ],
                         0,
                         '#FF0000', // red at 0
                         50,
