@@ -40,12 +40,12 @@ const resetForm = () => {
 
 <template>
     <div
-        class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        class="min-h-screen bg-linear-to-br from-blue-100 via-white to-indigo-200">
         <!-- Navigation Bar -->
         <NavBar @toggle-menu="isMobileMenuOpen = !isMobileMenuOpen" />
 
         <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main class="max-w-7xl mx-auto px-2 sm:px-5 lg:px-8 py-8">
             <!-- Hero Section -->
             <div class="text-center mb-12">
                 <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
@@ -53,8 +53,7 @@ const resetForm = () => {
                     <span class="text-indigo-600">Szkół</span>
                     w Polsce
                 </h1>
-                <p
-                    class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-8">
                     Znajdź najlepsze szkoły w swojej okolicy. Porównuj wyniki,
                     sprawdzaj rankingi i podejmuj świadome decyzje dotyczące
                     dalszej edukacji.
@@ -64,8 +63,7 @@ const resetForm = () => {
             <!-- Main Content Grid -->
             <div class="grid lg:grid-cols-2 gap-12 items-start">
                 <!-- Form Section -->
-                <div
-                    class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="content-card">
                     <div class="mb-8">
                         <h2 class="text-2xl font-bold text-gray-900 mb-2">
                             Wybierz parametry wyszukiwania
@@ -116,7 +114,7 @@ const resetForm = () => {
                                 class="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                                 <div
                                     v-if="selectedVoivodeship"
-                                    class="flex items-center justify-between">
+                                    class="flex justify-between">
                                     <span
                                         class="text-lg font-medium text-indigo-600">
                                         {{
@@ -130,7 +128,7 @@ const resetForm = () => {
                                         class="text-red-500 hover:text-red-700 transition-colors"
                                         @click="selectedVoivodeship = ''">
                                         <svg
-                                            class="h-5 w-5"
+                                            class="w-5 h-5"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor">
@@ -157,12 +155,12 @@ const resetForm = () => {
                                 :disabled="
                                     !selectedSchoolType || !selectedVoivodeship
                                 "
-                                class="flex-1 bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95">
+                                class="form-button bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed duration-200 hover:scale-105 active:scale-95">
                                 Szukaj szkół
                             </button>
                             <button
                                 type="button"
-                                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+                                class="form-button text-gray-700 hover:bg-gray-50"
                                 @click="resetForm">
                                 Wyczyść
                             </button>
@@ -171,9 +169,8 @@ const resetForm = () => {
                 </div>
 
                 <!-- Map Section -->
-                <div
-                    class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-                    <div class="mb-6">
+                <div class="content-card">
+                    <div class="mb-2">
                         <h2 class="text-2xl font-bold text-gray-900 mb-2">
                             Mapa województw
                         </h2>
@@ -182,15 +179,18 @@ const resetForm = () => {
                         </p>
                     </div>
 
-                    <div class="relative">
+                    <div class="relative p-2">
                         <VoivodeshipsMap
                             @path-click="handleVoivodeshipSelect" />
 
                         <!-- Map overlay for selected voivodeship -->
                         <div
                             v-if="selectedVoivodeship"
-                            class="absolute top-4 right-4 bg-indigo-100 text-indigo-800 px-3 py-2 rounded-lg text-sm font-medium border border-indigo-200">
-                            Wybrano: {{ voivodeshipNames[selectedVoivodeship] }}
+                            class="absolute top-0 right-0 bg-indigo-100 text-indigo-800 px-3 py-2 rounded-lg text-sm border border-indigo-200">
+                            <p>
+                                Wybrano:
+                                {{ voivodeshipNames[selectedVoivodeship] }}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -205,45 +205,33 @@ const resetForm = () => {
                     </h2>
                     <div class="grid md:grid-cols-3 gap-8 mt-8">
                         <div class="text-center">
-                            <div class="mx-auto mb-4">
-                                <img
-                                    src="~/assets/images/up-to-date_data.png"
-                                    alt="Aktualne dane"
-                                    class="w-24 h-24 rounded-full mx-auto object-cover border-white border-opacity-30" />
-                            </div>
-                            <h3 class="text-xl font-semibold mb-2">
-                                Aktualne dane
-                            </h3>
+                            <img
+                                src="~/assets/images/up-to-date_data.png"
+                                alt="Aktualne dane"
+                                class="feature-image" />
+                            <h3 class="feature-heading">Aktualne dane</h3>
                             <p class="text-indigo-100">
                                 Regularnie aktualizowane wyniki i statystyki
                                 szkół
                             </p>
                         </div>
                         <div class="text-center">
-                            <div class="mx-auto mb-4">
-                                <img
-                                    src="~/assets/images/location.png"
-                                    alt="Lokalizacja"
-                                    class="w-24 h-24 rounded-full mx-auto object-cover border-2 border-white border-opacity-30" />
-                            </div>
-                            <h3 class="text-xl font-semibold mb-2">
-                                Lokalizacja
-                            </h3>
+                            <img
+                                src="~/assets/images/location.png"
+                                alt="Lokalizacja"
+                                class="feature-image" />
+                            <h3 class="feature-heading">Lokalizacja</h3>
                             <p class="text-indigo-100">
                                 Znajdź szkoły w swojej okolicy na interaktywnej
                                 mapie
                             </p>
                         </div>
                         <div class="text-center">
-                            <div class="mx-auto mb-4">
-                                <img
-                                    src="~/assets/images/school_comparison.png"
-                                    alt="Łatwa porównywarka"
-                                    class="w-24 h-24 rounded-full mx-auto object-cover border-2 border-white border-opacity-30" />
-                            </div>
-                            <h3 class="text-xl font-semibold mb-2">
-                                Łatwa porównywarka
-                            </h3>
+                            <img
+                                src="~/assets/images/school_comparison.png"
+                                alt="Łatwa porównywarka"
+                                class="feature-image" />
+                            <h3 class="feature-heading">Łatwa porównywarka</h3>
                             <p class="text-indigo-100">
                                 Porównuj szkoły według różnych kryteriów
                             </p>
@@ -255,31 +243,42 @@ const resetForm = () => {
 
         <!-- Footer -->
         <footer class="bg-gray-900 text-white mt-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div class="text-center">
-                    <h3 class="text-2xl font-bold mb-4">Ranking Szkół</h3>
-                    <p class="text-gray-400 mb-8">
-                        Najlepsze narzędzie do znajdowania szkół w Polsce
-                    </p>
-                    <div class="flex justify-center space-x-8">
-                        <a
-                            href="#"
-                            class="text-gray-400 hover:text-white transition-colors"
-                            >O nas</a
-                        >
-                        <a
-                            href="#"
-                            class="text-gray-400 hover:text-white transition-colors"
-                            >Kontakt</a
-                        >
-                        <a
-                            href="#"
-                            class="text-gray-400 hover:text-white transition-colors"
-                            >Polityka prywatności</a
-                        >
-                    </div>
+            <div
+                class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+                <h3 class="feature-heading">Ranking Szkół</h3>
+                <p class="text-gray-400 mb-8">
+                    Najlepsze narzędzie do znajdowania szkół w Polsce
+                </p>
+                <div class="flex flex-wrap justify-center gap-6 md:gap-8">
+                    <a href="#" class="footer-nav-link">O nas</a>
+                    <a href="#" class="footer-nav-link">Kontakt</a>
+                    <a href="#" class="footer-nav-link">Polityka prywatności</a>
                 </div>
             </div>
         </footer>
     </div>
 </template>
+
+<style scoped>
+@import "tailwindcss";
+
+.form-button {
+    @apply px-6 py-3 border border-gray-300  rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200;
+}
+
+.content-card {
+    @apply bg-white rounded-2xl shadow-xl p-4 md:p-6;
+}
+
+.feature-image {
+    @apply w-24 h-24 rounded-full mb-4 mx-auto object-cover border-2 border-white/30;
+}
+
+.feature-heading {
+    @apply text-xl font-semibold mb-2;
+}
+
+.footer-link {
+    @apply text-gray-400 hover:text-white transition-colors;
+}
+</style>
