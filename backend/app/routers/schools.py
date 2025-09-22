@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
 from app.core.database import get_session
-from app.models.locations import Gmina, Miejscowosc, Powiat
+from app.models.bounding_box import BoundingBox
 from app.models.schools import Szkola, SzkolaPublic, SzkolaPublicShort
 
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -26,20 +26,15 @@ async def read_school(school_id: int, session: SessionDep) -> Szkola:
 @router.get("/", response_model=list[SzkolaPublicShort])
 async def read_schools(
     session: SessionDep,
-    skip: int = 0,
-    limit: int = 100,
-    voivodeship_id: Annotated[int | None, Query(gt=0, le=16)] = None,
+    bounding_box: Annotated[BoundingBox, Query()],
 ):
-    if voivodeship_id:  # retrieve all schools from a single voivodeship
-        statement = (
-            select(Szkola)
-            .join(Miejscowosc)
-            .join(Gmina)
-            .join(Powiat)
-            .where(Powiat.wojewodztwo_id == voivodeship_id)
-        )
-        schools = session.exec(statement).all()
-        return schools
-    # if voivodship_id is not provided, return a page of schools
-    schools = session.exec(select(Szkola).offset(skip).limit(limit)).all()
+    # SQL query to filter schools within bounding box boundaries
+    statement = select(Szkola).where(
+        (Szkola.geolokalizacja_latitude >= bounding_box.south)
+        & (Szkola.geolokalizacja_latitude <= bounding_box.north)
+        & (Szkola.geolokalizacja_longitude >= bounding_box.west)
+        & (Szkola.geolokalizacja_longitude <= bounding_box.east)
+    )
+    schools = session.exec(statement).all()
+    print("Found schools:", len(schools))
     return schools
