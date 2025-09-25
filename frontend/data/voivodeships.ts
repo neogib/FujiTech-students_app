@@ -5,9 +5,11 @@
 /**
  * Coordinate pair representing latitude and longitude
  */
-export interface Coordinate {
-    lat: number
-    lon: number
+export interface View {
+    south: number
+    north: number
+    west: number
+    east: number
 }
 
 /**
@@ -15,8 +17,7 @@ export interface Coordinate {
  */
 export interface VoivodeshipData {
     name: string
-    topLeft: Coordinate
-    bottomRight: Coordinate
+    coordinates: View
 }
 
 /**
@@ -26,82 +27,81 @@ export interface VoivodeshipData {
 export const voivodeshipNames: Record<string, VoivodeshipData> = {
     dolnoslaskie: {
         name: "Dolnośląskie",
-        topLeft: { lat: 51.9134, lon: 14.7603 },
-        bottomRight: { lat: 49.9809, lon: 17.9091 },
+        coordinates: {
+            north: 51.9134,
+            south: 49.9809,
+            west: 14.7603,
+            east: 17.9091,
+        },
     },
-    "kujawsko-pomorskie": {
+    kujawsko_pomorskie: {
         name: "Kujawsko-pomorskie",
-        topLeft: { lat: 53.83, lon: 17.16 },
-        bottomRight: { lat: 52.28, lon: 19.88 },
+        coordinates: { north: 53.83, south: 52.28, west: 17.16, east: 19.88 },
     },
     lubelskie: {
         name: "Lubelskie",
-        topLeft: { lat: 52.35, lon: 21.52 },
-        bottomRight: { lat: 50.2, lon: 24.25 },
+        coordinates: { north: 52.35, south: 50.2, west: 21.52, east: 24.25 },
     },
     lubuskie: {
         name: "Lubuskie",
-        topLeft: { lat: 53.18, lon: 14.4 },
-        bottomRight: { lat: 51.33, lon: 16.6 },
+        coordinates: { north: 53.18, south: 51.33, west: 14.4, east: 16.6 },
     },
     lodzkie: {
         name: "Łódzkie",
-        topLeft: { lat: 52.45, lon: 17.95 },
-        bottomRight: { lat: 50.78, lon: 20.75 },
+        coordinates: { north: 52.45, south: 50.78, west: 17.95, east: 20.75 },
     },
     malopolskie: {
         name: "Małopolskie",
-        topLeft: { lat: 50.59, lon: 18.92 },
-        bottomRight: { lat: 49.07, lon: 21.55 },
+        coordinates: { north: 50.59, south: 49.07, west: 18.92, east: 21.55 },
     },
     mazowieckie: {
         name: "Mazowieckie",
-        topLeft: { lat: 53.55, lon: 19.15 },
-        bottomRight: { lat: 50.95, lon: 23.25 },
+        coordinates: { north: 53.55, south: 50.95, west: 19.15, east: 23.25 },
     },
     opolskie: {
         name: "Opolskie",
-        topLeft: { lat: 51.2778, lon: 16.8461 },
-        bottomRight: { lat: 49.942, lon: 18.8073 },
+        coordinates: {
+            north: 51.2778,
+            south: 49.942,
+            west: 16.8461,
+            east: 18.8073,
+        },
     },
     podkarpackie: {
         name: "Podkarpackie",
-        topLeft: { lat: 50.9, lon: 21.03 },
-        bottomRight: { lat: 48.95, lon: 23.66 },
+        coordinates: { north: 50.9, south: 48.95, west: 21.03, east: 23.66 },
     },
     podlaskie: {
         name: "Podlaskie",
-        topLeft: { lat: 54.5, lon: 21.45 },
-        bottomRight: { lat: 52.17, lon: 24.1 },
+        coordinates: { north: 54.5, south: 52.17, west: 21.45, east: 24.1 },
     },
     pomorskie: {
         name: "Pomorskie",
-        topLeft: { lat: 54.92, lon: 16.65 },
-        bottomRight: { lat: 53.4, lon: 19.75 },
+        coordinates: { north: 54.92, south: 53.4, west: 16.65, east: 19.75 },
     },
     slaskie: {
         name: "Śląskie",
-        topLeft: { lat: 51.1617, lon: 17.8872 },
-        bottomRight: { lat: 49.2956, lon: 20.0559 },
+        coordinates: {
+            north: 51.1617,
+            south: 49.2956,
+            west: 17.8872,
+            east: 20.0559,
+        },
     },
     swietokrzyskie: {
         name: "Świętokrzyskie",
-        topLeft: { lat: 51.4, lon: 19.6 },
-        bottomRight: { lat: 50.1, lon: 22.0 },
+        coordinates: { north: 51.4, south: 50.1, west: 19.6, east: 22.0 },
     },
     "warminsko-mazurskie": {
         name: "Warmińsko-mazurskie",
-        topLeft: { lat: 54.52, lon: 19.05 },
-        bottomRight: { lat: 53.07, lon: 22.95 },
+        coordinates: { north: 54.52, south: 53.07, west: 19.05, east: 22.95 },
     },
     wielkopolskie: {
         name: "Wielkopolskie",
-        topLeft: { lat: 53.7, lon: 15.68 },
-        bottomRight: { lat: 51.05, lon: 19.19 },
+        coordinates: { north: 53.7, south: 51.05, west: 15.68, east: 19.19 },
     },
     "zachodnio-pomorskie": {
         name: "Zachodniopomorskie",
-        topLeft: { lat: 54.65, lon: 13.95 },
-        bottomRight: { lat: 52.58, lon: 17.1 },
+        coordinates: { north: 54.65, south: 52.58, west: 13.95, east: 17.1 },
     },
 }
