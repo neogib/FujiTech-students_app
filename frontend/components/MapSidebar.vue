@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { Feature, Point } from "geojson"
-
-interface SchoolProperties {
-    score: number
-    description: string
-}
+import type { SchoolShort } from "~/types/schools"
 
 interface Props {
     isOpen: boolean
-    selectedPoint: Feature<Point, SchoolProperties> | null
+    selectedPoint: Feature<Point, SchoolShort> | null
 }
 
 defineProps<Props>()
@@ -121,12 +117,7 @@ const closeSidebar = () => {
                         Description
                     </h3>
                     <div class="text-sm text-gray-600">
-                        {{
-                            selectedPoint.properties.description.replace(
-                                /<[^>]*>/g,
-                                "",
-                            )
-                        }}
+                        {{ selectedPoint.properties.nazwa }}
                     </div>
                 </div>
 
