@@ -23,18 +23,27 @@ async def read_school(school_id: int, session: SessionDep) -> Szkola:
     return school
 
 
+class FilterParams(BoundingBox):
+    type: int | None = None
+
+
 @router.get("/", response_model=list[SzkolaPublicShort])
 async def read_schools(
     session: SessionDep,
-    bounding_box: Annotated[BoundingBox, Query()],
+    filter_query: Annotated[FilterParams, Query()],
 ):
     # SQL query to filter schools within bounding box boundaries
     statement = select(Szkola).where(
-        (Szkola.geolokalizacja_latitude >= bounding_box.south)
-        & (Szkola.geolokalizacja_latitude <= bounding_box.north)
-        & (Szkola.geolokalizacja_longitude >= bounding_box.west)
-        & (Szkola.geolokalizacja_longitude <= bounding_box.east)
+        (Szkola.geolokalizacja_latitude >= filter_query.south)
+        & (Szkola.geolokalizacja_latitude <= filter_query.north)
+        & (Szkola.geolokalizacja_longitude >= filter_query.west)
+        & (Szkola.geolokalizacja_longitude <= filter_query.east)
     )
+
+    # Add type filter if type parameter is provided
+    if filter_query.type is not None:
+        statement = statement.where(Szkola.typ_id == filter_query.type)
+
     schools = session.exec(statement).all()
     print("Found schools:", len(schools))
     return schools
