@@ -22,7 +22,7 @@ const schoolTypes = [
 
 const voivodeshipName = computed(() => {
     return props.selectedVoivodeship
-        ? voivodeshipNames[props.selectedVoivodeship]
+        ? voivodeshipNames[props.selectedVoivodeship].name
         : ""
 })
 

@@ -10,7 +10,7 @@ const handleVoivodeshipSelect = (voivodeshipId: string) => {
     selectedVoivodeship.value = voivodeshipId
 }
 
-const handleSearchSubmit = (searchParams: {
+const handleSearchSubmit = async (searchParams: {
     schoolType: string
     voivodeship: string
 }) => {
@@ -18,6 +18,17 @@ const handleSearchSubmit = (searchParams: {
 
     // Here would be the redirect to map page in the future
     console.log("Przekierowanie do strony mapy...")
+    const coords = voivodeshipNames[searchParams.voivodeship].coordinates
+    await navigateTo({
+        path: "/map",
+        query: {
+            south: coords.south,
+            north: coords.north,
+            west: coords.west,
+            east: coords.east,
+            type: searchParams.schoolType,
+        },
+    })
 }
 </script>
 
@@ -72,7 +83,7 @@ const handleSearchSubmit = (searchParams: {
                             class="absolute top-0 right-0 bg-indigo-100 text-indigo-800 px-3 py-2 rounded-lg text-sm border border-indigo-200">
                             <p>
                                 Wybrano:
-                                {{ voivodeshipNames[selectedVoivodeship] }}
+                                {{ voivodeshipNames[selectedVoivodeship].name }}
                             </p>
                         </div>
                     </div>
