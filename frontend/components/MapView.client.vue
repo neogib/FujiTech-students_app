@@ -2,46 +2,53 @@
 import maplibregl from "maplibre-gl"
 import triangleIconUrl from "~/assets/images/triangle_small.png"
 import type { FeatureCollection, Feature, Point } from "geojson"
+import type { SchoolShort } from "~/types/schools"
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
-const center: [number, number] = [-77.04, 38.907]
-const zoom = 11.15
+const center: [number, number] = [19, 52]
+const zoom = 6
 
-interface SchoolProperties {
-    score: number
-    description: string
-}
+const props = defineProps<{
+    schools: SchoolShort[] | null
+}>()
 
 // Define emits for the component
 const emit = defineEmits<{
-    "point-clicked": [feature: Feature<Point, SchoolProperties>]
+    "point-clicked": [feature: Feature<Point, SchoolShort>]
 }>()
 
-const features: Feature<Point, SchoolProperties>[] = []
-
-for (let i = 0; i < 100; i++) {
-    const randomScore = Math.floor(Math.random() * 101)
-    features.push({
+/**
+ * Transform SchoolShort objects to GeoJSON features
+ * @param schools - Array of SchoolShort objects
+ * @returns Array of GeoJSON features
+ */
+const transformSchoolsToFeatures = (
+    schools: SchoolShort[],
+): Feature<Point, SchoolShort>[] => {
+    return schools.map((school) => ({
         type: "Feature",
-        properties: {
-            score: randomScore,
-            description: `<strong>Random Point ${i + 1}</strong><p>This is a randomly generated point with a score of ${randomScore}.</p>`,
-        },
+        properties: school,
         geometry: {
             type: "Point",
             coordinates: [
-                -77.04 + (Math.random() - 0.5) * 0.2, // Random longitude around center
-                38.907 + (Math.random() - 0.5) * 0.2, // Random latitude around center
+                school.geolokalizacja_longitude,
+                school.geolokalizacja_latitude,
             ],
         },
-    })
+    }))
 }
 
-// Properly type the GeoJSON source as FeatureCollection
-const geoJsonSource: FeatureCollection<Point, SchoolProperties> = {
-    type: "FeatureCollection",
-    features: features,
-}
+// Create reactive GeoJSON source that updates when schools prop changes
+const geoJsonSource = computed<FeatureCollection<Point, SchoolShort>>(() => {
+    const features = props.schools
+        ? transformSchoolsToFeatures(props.schools)
+        : []
+
+    return {
+        type: "FeatureCollection",
+        features,
+    }
+})
 
 const onMapLoaded = (event: { map: maplibregl.Map }) => {
     const popup = new maplibregl.Popup({
@@ -69,8 +76,9 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
             map.getCanvas().style.cursor = "pointer"
 
             const coordinates = pointGeometry.coordinates.slice()
-            const description = feature_collection.properties?.description
-
+            const feature_properties: SchoolShort =
+                feature_collection.properties as SchoolShort
+            const description = `${feature_properties.nazwa} ${feature_properties.numer_rspo} ${feature_properties.geolokalizacja_latitude} ${feature_properties.geolokalizacja_longitude}`
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
             // over the copy being pointed to.
@@ -107,7 +115,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         // Convert to unknown first to safely cast from MapGeoJSONFeature to our specific type
         const clickedFeature = feature_collection as unknown as Feature<
             Point,
-            SchoolProperties
+            SchoolShort
         >
         emit("point-clicked", clickedFeature)
     })
