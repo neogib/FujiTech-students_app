@@ -11,7 +11,7 @@ const handleVoivodeshipSelect = (voivodeshipId: string) => {
 }
 
 const handleSearchSubmit = async (searchParams: {
-    schoolType: string
+    schoolType: number
     voivodeship: string
 }) => {
     console.log("Search parameters received from form:", searchParams)

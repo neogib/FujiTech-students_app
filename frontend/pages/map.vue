@@ -9,7 +9,9 @@ const { data, status } = useApi<SchoolShort[]>("/schools", {
         north: router.query.north,
         west: router.query.west,
         east: router.query.east,
+        type: router.query.type,
     },
+    // lazy: true,
 })
 
 // Reactive state for sidebar

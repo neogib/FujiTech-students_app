@@ -1,24 +1,29 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
+import { mainSchoolTypes } from "~/data/schoolTypes"
 import { voivodeshipNames } from "~/data/voivodeships"
+import type { SchoolType } from "~/types/schools"
 
 const props = defineProps<{
     readonly selectedVoivodeship: string
 }>()
 
 const emit = defineEmits<{
-    (e: "submit", payload: { schoolType: string; voivodeship: string }): void
+    (e: "submit", payload: { schoolType: number; voivodeship: string }): void
     (e: "clear-voivodeship"): void
 }>()
 
-const selectedSchoolType = ref<string>("")
+const selectedSchoolType = ref<number>()
 
-const schoolTypes = [
-    { value: "przedszkole", label: "Przedszkole" },
-    { value: "szkola-podstawowa", label: "Szkoła podstawowa" },
-    { value: "liceum", label: "Liceum" },
-    { value: "technikum", label: "Technikum" },
-]
+const schoolTypesToDisplay: SchoolType[] = []
+mainSchoolTypes.forEach((mainType) => {
+    const { data } = useApi<SchoolType>("/school_types/", {
+        query: { name: mainType },
+    })
+    if (data.value) {
+        schoolTypesToDisplay.push(data.value)
+    }
+})
 
 const voivodeshipName = computed(() => {
     return props.selectedVoivodeship
@@ -32,6 +37,7 @@ const handleSubmit = () => {
         return
     }
     // Emit the submit event with the form data as a payload
+    console.log(`Selected Scohol type: ${selectedSchoolType.value}`)
     emit("submit", {
         schoolType: selectedSchoolType.value,
         voivodeship: props.selectedVoivodeship,
@@ -39,7 +45,7 @@ const handleSubmit = () => {
 }
 
 const resetForm = () => {
-    selectedSchoolType.value = ""
+    selectedSchoolType.value = 0
     // We also need to tell the parent to clear its state
     emit("clear-voivodeship")
 }
@@ -66,21 +72,21 @@ const resetForm = () => {
                 </label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div
-                        v-for="schoolType in schoolTypes"
-                        :key="schoolType.value"
+                        v-for="schoolType in schoolTypesToDisplay"
+                        :key="schoolType.id"
                         class="relative">
                         <input
-                            :id="schoolType.value"
+                            :id="schoolType.id.toString()"
                             v-model="selectedSchoolType"
-                            :value="schoolType.value"
+                            :value="schoolType.id"
                             type="radio"
                             name="school-type"
                             class="peer sr-only" />
                         <label
-                            :for="schoolType.value"
+                            :for="schoolType.id.toString()"
                             class="block w-full p-4 text-center border-2 border-gray-200 rounded-lg cursor-pointer hover:border-indigo-300 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 transition-all duration-200">
                             <span class="font-medium">{{
-                                schoolType.label
+                                schoolType.nazwa
                             }}</span>
                         </label>
                     </div>

@@ -25,6 +25,8 @@ async def read_school_types(session: SessionDep, name: str | None = None):
     school_types = session.exec(statement).all()
     if not school_types:
         raise HTTPException(status_code=404, detail="School types not found")
+    if len(school_types) == 1:
+        return school_types[0]
     return school_types
 
 
