@@ -7,6 +7,7 @@ import type { SchoolShort } from "~/types/schools"
 const style = "https://tiles.openfreemap.org/styles/liberty"
 const center: [number, number] = [19, 52]
 const zoom = 6
+const route = useRoute()
 
 const props = defineProps<{
     schools: SchoolShort[] | null
@@ -99,6 +100,21 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         currentFeatureCoordinates = undefined
         map.getCanvas().style.cursor = ""
         popup.remove()
+    })
+
+    map.on("mouseup", async () => {
+        console.log("Map bounds changed, updating route params...", route.query)
+        const bounds = map.getBounds()
+        await navigateTo({
+            // path: route.path,
+            query: {
+                ...route.query,
+                south: bounds.getSouth().toString(),
+                north: bounds.getNorth().toString(),
+                west: bounds.getWest().toString(),
+                east: bounds.getEast().toString(),
+            },
+        })
     })
 
     // Add click event handler

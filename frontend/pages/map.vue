@@ -2,16 +2,17 @@
 import type { Feature, Point } from "geojson"
 import type { SchoolShort } from "~/types/schools"
 
-const router = useRoute()
+const route = useRoute()
+
+// Create a computed property for query parameters to refetch data after changing them
+const queryParams = computed(() => ({
+    ...route.query,
+}))
+
 const { data, status } = useApi<SchoolShort[]>("/schools", {
-    query: {
-        south: router.query.south,
-        north: router.query.north,
-        west: router.query.west,
-        east: router.query.east,
-        type: router.query.type,
-    },
-    // lazy: true,
+    // useFetch will automatically unwrap the .value of the computed property
+    // and re-run the fetch when the computed value changes.
+    query: queryParams,
 })
 
 // Reactive state for sidebar
