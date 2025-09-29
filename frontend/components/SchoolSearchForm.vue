@@ -15,15 +15,17 @@ const emit = defineEmits<{
 
 const selectedSchoolType = ref<number>()
 
-const schoolTypesToDisplay: SchoolType[] = []
-mainSchoolTypes.forEach((mainType) => {
-    const { data } = useApi<SchoolType>("/school_types/", {
+const schoolTypePromises = mainSchoolTypes.map((mainType) => {
+    return useApi<SchoolType>("/school_types/", {
         query: { name: mainType },
     })
-    if (data.value) {
-        schoolTypesToDisplay.push(data.value)
-    }
 })
+// using await here so that the server stops and waits for all data to be fetched
+const schoolTypeResults = await Promise.all(schoolTypePromises)
+
+const schoolTypesToDisplay: SchoolType[] = schoolTypeResults
+    .map((result) => result.data.value) // Extract the 'data' from each result
+    .filter((schoolType): schoolType is SchoolType => !!schoolType)
 
 const voivodeshipName = computed(() => {
     return props.selectedVoivodeship

@@ -102,11 +102,10 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         popup.remove()
     })
 
-    map.on("mouseup", async () => {
-        console.log("Map bounds changed, updating route params...", route.query)
+    const updateQueryParams = async () => {
+        console.log("Map movement settled, updating route params...")
         const bounds = map.getBounds()
         await navigateTo({
-            // path: route.path,
             query: {
                 ...route.query,
                 south: bounds.getSouth().toString(),
@@ -114,9 +113,11 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                 west: bounds.getWest().toString(),
                 east: bounds.getEast().toString(),
             },
+            replace: true,
         })
-    })
+    }
 
+    map.on("moveend", updateQueryParams)
     // Add click event handler
     map.on("click", "my-interactive-layer", (e) => {
         const feature_collection = e.features?.[0]
