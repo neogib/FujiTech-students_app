@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import maplibregl from "maplibre-gl"
-import triangleIconUrl from "~/assets/images/triangle_small.png"
+import triangleIconUrl from "~/assets/images/triangle.png"
+import circleIconUrl from "~/assets/images/circle.png"
+import diamondIconUrl from "~/assets/images/diamond.png"
+import squareIconUrl from "~/assets/images/square.png"
+import starIconUrl from "~/assets/images/star.png"
 import type { FeatureCollection, Feature, Point } from "geojson"
 import type { SchoolShort } from "~/types/schools"
+const iconUrls = [
+    triangleIconUrl,
+    circleIconUrl,
+    diamondIconUrl,
+    squareIconUrl,
+    starIconUrl,
+]
+console.log("Icon URLs:", iconUrls)
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
 const center: [number, number] = [19, 52]
@@ -148,8 +160,10 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         <MglNavigationControl />
 
         <mgl-image
-            id="triangle_sdf"
-            :url="triangleIconUrl"
+            v-for="iconUrl in iconUrls"
+            :id="`${iconUrl.split('/').pop()?.split('.').shift()}_sdf`"
+            :key="iconUrl"
+            :url="iconUrl"
             :options="{ sdf: true }" />
 
         <!-- Add your MglSource and MglLayer components here -->
@@ -184,7 +198,29 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                     ],
                 }"
                 :layout="{
-                    'icon-image': 'triangle_sdf',
+                    'icon-image': [
+                        'case',
+                        ['has', 'cluster'],
+                        'star_sdf',
+                        ['==', ['get', 'nazwa', ['get', 'typ']], 'Technikum'],
+                        'triangle_sdf',
+                        [
+                            '==',
+                            ['get', 'nazwa', ['get', 'typ']],
+                            'Liceum ogólnokształcące',
+                        ],
+                        'circle_sdf',
+                        [
+                            '==',
+                            ['get', 'nazwa', ['get', 'typ']],
+                            'Szkoła podstawowa',
+                        ],
+                        'square_sdf',
+                        ['==', ['get', 'nazwa', ['get', 'typ']], 'Przedszkole'],
+                        'diamond_sdf',
+                        // Default fallback for any other school types
+                        'star_sdf',
+                    ],
                     'icon-overlap': 'always',
                 }" />
         </MglGeoJsonSource>
