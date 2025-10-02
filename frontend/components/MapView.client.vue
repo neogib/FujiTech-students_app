@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import maplibregl from "maplibre-gl"
-import triangleIconUrl from "~/assets/images/triangle.png"
-import circleIconUrl from "~/assets/images/circle.png"
-import diamondIconUrl from "~/assets/images/diamond.png"
-import squareIconUrl from "~/assets/images/square.png"
-import starIconUrl from "~/assets/images/star.png"
+import triangleIconUrl from "~/assets/images/figures/triangle.png"
+import circleIconUrl from "~/assets/images/figures/circle.png"
+import diamondIconUrl from "~/assets/images/figures/diamond.png"
+import squareIconUrl from "~/assets/images/figures/square.png"
+import starIconUrl from "~/assets/images/figures/star.png"
 import type { FeatureCollection, Feature, Point } from "geojson"
 import type { SchoolShort } from "~/types/schools"
 const iconUrls = [
@@ -114,6 +114,9 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         popup.remove()
     })
 
+    // --- DEBOUNCING LOGIC ---
+    let debounceTimeout: NodeJS.Timeout | null = null
+
     const updateQueryParams = async () => {
         console.log("Map movement settled, updating route params...")
         const bounds = map.getBounds()
@@ -129,7 +132,17 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         })
     }
 
-    map.on("moveend", updateQueryParams)
+    map.on("moveend", () => {
+        // Clear the previous timeout if it exists
+        if (debounceTimeout) {
+            clearTimeout(debounceTimeout)
+        }
+
+        // Set a new timeout
+        debounceTimeout = setTimeout(() => {
+            updateQueryParams()
+        }, 300) // Wait for 300ms of inactivity before fetching
+    })
     // Add click event handler
     map.on("click", "my-interactive-layer", (e) => {
         const feature_collection = e.features?.[0]
