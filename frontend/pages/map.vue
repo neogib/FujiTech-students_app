@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { Feature, Point } from "geojson"
-import type { SchoolShort } from "~/types/schools"
+import type { SzkolaPublic, SzkolaPublicShort } from "~/types/schools"
 
 const route = useRoute()
 
@@ -9,7 +8,7 @@ const queryParams = computed(() => ({
     ...route.query,
 }))
 
-const { data, status } = useApi<SchoolShort[]>("/schools", {
+const { data, status } = useApi<SzkolaPublicShort[]>("/schools", {
     // useFetch will automatically unwrap the .value of the computed property
     // and re-run the fetch when the computed value changes.
     query: queryParams,
@@ -17,16 +16,16 @@ const { data, status } = useApi<SchoolShort[]>("/schools", {
 
 // Reactive state for sidebar
 const isSidebarOpen = ref(false)
-const selectedPoint = ref<Feature<Point, SchoolShort> | null>(null)
+const selectedSchool = ref<SzkolaPublic | null>(null)
 
-const handlePointClick = (feature: Feature<Point, SchoolShort>) => {
-    selectedPoint.value = feature
+const handlePointClick = (school: SzkolaPublic) => {
+    selectedSchool.value = school
     isSidebarOpen.value = true
 }
 
 const handleSidebarClose = () => {
     isSidebarOpen.value = false
-    selectedPoint.value = null
+    selectedSchool.value = null
 }
 </script>
 
@@ -37,7 +36,7 @@ const handleSidebarClose = () => {
         <!-- Sidebar -->
         <MapSidebar
             :is-open="isSidebarOpen"
-            :selected-point="selectedPoint"
+            :selected-point="selectedSchool"
             @close="handleSidebarClose" />
         <UserMessage
             v-if="status === 'pending'"

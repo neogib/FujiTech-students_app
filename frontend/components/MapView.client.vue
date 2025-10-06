@@ -6,7 +6,16 @@ import diamondIconUrl from "~/assets/images/figures/diamond.png"
 import squareIconUrl from "~/assets/images/figures/square.png"
 import starIconUrl from "~/assets/images/figures/star.png"
 import type { FeatureCollection, Feature, Point } from "geojson"
-import type { SchoolShort } from "~/types/schools"
+import type { SzkolaPublicShort, SzkolaPublic } from "~/types/schools"
+
+const props = defineProps<{
+    schools: SzkolaPublicShort[] | null
+}>()
+
+const emit = defineEmits<{
+    "point-clicked": [school: SzkolaPublic]
+}>()
+
 const iconUrls = [
     triangleIconUrl,
     circleIconUrl,
@@ -14,30 +23,16 @@ const iconUrls = [
     squareIconUrl,
     starIconUrl,
 ]
-console.log("Icon URLs:", iconUrls)
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
 const center: [number, number] = [19, 52]
 const zoom = 6
 const route = useRoute()
 
-const props = defineProps<{
-    schools: SchoolShort[] | null
-}>()
-
-// Define emits for the component
-const emit = defineEmits<{
-    "point-clicked": [feature: Feature<Point, SchoolShort>]
-}>()
-
-/**
- * Transform SchoolShort objects to GeoJSON features
- * @param schools - Array of SchoolShort objects
- * @returns Array of GeoJSON features
- */
+// Transform SchoolShort objects to GeoJSON features
 const transformSchoolsToFeatures = (
-    schools: SchoolShort[],
-): Feature<Point, SchoolShort>[] => {
+    schools: SzkolaPublicShort[],
+): Feature<Point, SzkolaPublicShort>[] => {
     return schools.map((school) => ({
         type: "Feature",
         properties: school,
@@ -52,16 +47,18 @@ const transformSchoolsToFeatures = (
 }
 
 // Create reactive GeoJSON source that updates when schools prop changes
-const geoJsonSource = computed<FeatureCollection<Point, SchoolShort>>(() => {
-    const features = props.schools
-        ? transformSchoolsToFeatures(props.schools)
-        : []
+const geoJsonSource = computed<FeatureCollection<Point, SzkolaPublicShort>>(
+    () => {
+        const features = props.schools
+            ? transformSchoolsToFeatures(props.schools)
+            : []
 
-    return {
-        type: "FeatureCollection",
-        features,
-    }
-})
+        return {
+            type: "FeatureCollection",
+            features,
+        }
+    },
+)
 
 const onMapLoaded = (event: { map: maplibregl.Map }) => {
     const popup = new maplibregl.Popup({
@@ -89,8 +86,8 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
             map.getCanvas().style.cursor = "pointer"
 
             const coordinates = pointGeometry.coordinates.slice()
-            const feature_properties: SchoolShort =
-                feature_collection.properties as SchoolShort
+            const feature_properties: SzkolaPublicShort =
+                feature_collection.properties as SzkolaPublicShort
             const description = `${feature_properties.nazwa} ${feature_properties.numer_rspo} ${feature_properties.geolokalizacja_latitude} ${feature_properties.geolokalizacja_longitude}`
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
@@ -144,22 +141,17 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         }, 300) // Wait for 300ms of inactivity before fetching
     })
     // Add click event handler
-    map.on("click", "my-interactive-layer", (e) => {
+    map.on("click", "my-interactive-layer", async (e) => {
         const feature_collection = e.features?.[0]
-        if (
-            !feature_collection ||
-            feature_collection.geometry.type !== "Point"
-        ) {
-            return
-        }
 
-        // Type the feature properly and emit the click event
-        // Convert to unknown first to safely cast from MapGeoJSONFeature to our specific type
-        const clickedFeature = feature_collection as unknown as Feature<
-            Point,
-            SchoolShort
-        >
-        emit("point-clicked", clickedFeature)
+        const schoolFullDetails = await useApi<SzkolaPublic>(
+            `/schools/${feature_collection?.properties.id}`,
+        )
+        console.log("Clicked feature details:", schoolFullDetails.data)
+
+        if (schoolFullDetails.data.value) {
+            emit("point-clicked", schoolFullDetails.data.value)
+        }
     })
 }
 </script>

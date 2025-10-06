@@ -1,30 +1,11 @@
 /**
- * TypeScript interfaces for school-related data models
- * These interfaces correspond to the backend Python models in app.models.schools
+ * TypeScript types for school-related data models
+ * These types correspond to the backend Python models in app.models.schools
+ * Types were generated using a opeanapi-typescript generator
  */
+import type { components } from "./api"
 
-export interface SchoolType {
-    id: number
-    nazwa: string
-}
+type schemas = components["schemas"]
 
-export interface PublicLegalStatus {
-    id: number
-    nazwa: string
-}
-
-/*
-Used for displaying basic school information with location and ranking
-Corresponds to backend SzkolaPublicShort model
- */
-export interface SchoolShort {
-    /** Unique identifier */
-    id: number
-    numer_rspo: number
-    nazwa: string
-    geolokalizacja_latitude: number
-    geolokalizacja_longitude: number
-    score: number
-    typ: SchoolType
-    status_publicznoprawny: PublicLegalStatus
-}
+export type SzkolaPublicShort = schemas["SzkolaPublicShort"]
+export type SzkolaPublic = schemas["SzkolaPublic"]
