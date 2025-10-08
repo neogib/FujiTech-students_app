@@ -47,11 +47,7 @@ const handleSidebarClose = () => {
             message="An error occurred while loading map data." />
 
         <!-- MapView taking full remaining space with dynamic margin for sidebar -->
-        <div
-            :class="[
-                'transition-all duration-300',
-                isSidebarOpen ? 'lg:ml-80' : 'ml-0',
-            ]">
+        <div :class="['transition-all duration-300']">
             <MapView :schools="data" @point-clicked="handlePointClick" />
         </div>
     </div>
