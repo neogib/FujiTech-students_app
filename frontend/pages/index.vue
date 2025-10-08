@@ -18,14 +18,14 @@ const handleSearchSubmit = async (searchParams: {
 
     // Here would be the redirect to map page in the future
     console.log("Przekierowanie do strony mapy...")
-    const coords = voivodeshipNames[searchParams.voivodeship].coordinates
+    const coords = voivodeshipNames[searchParams.voivodeship]?.coordinates
     await navigateTo({
         path: "/map",
         query: {
-            south: coords.south,
-            north: coords.north,
-            west: coords.west,
-            east: coords.east,
+            south: coords?.south,
+            north: coords?.north,
+            west: coords?.west,
+            east: coords?.east,
             type: searchParams.schoolType,
         },
     })

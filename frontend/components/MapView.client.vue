@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import maplibregl from "maplibre-gl"
+import type { LngLatBoundsLike } from "maplibre-gl"
 import triangleIconUrl from "~/assets/images/figures/triangle.png"
 import circleIconUrl from "~/assets/images/figures/circle.png"
 import diamondIconUrl from "~/assets/images/figures/diamond.png"
@@ -25,9 +26,37 @@ const iconUrls = [
 ]
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
-const center: [number, number] = [19, 52]
-const zoom = 6
+/**
+ * Calculate the center coordinates based on route query parameters (east, west, south, north)
+ * Falls back to default Poland center [19, 52] when query parameters are not available
+ */
 const route = useRoute()
+const center = ref<[number, number]>([19, 52]) // Default value
+const { east, west, south, north } = route.query
+if (east && west && south && north) {
+    const eastNum = Number(east)
+    const westNum = Number(west)
+    const southNum = Number(south)
+    const northNum = Number(north)
+
+    // Validate that all parameters are valid numbers
+    if (
+        !isNaN(eastNum) &&
+        !isNaN(westNum) &&
+        !isNaN(southNum) &&
+        !isNaN(northNum)
+    ) {
+        // Calculate center from bounding box coordinates
+        const centerLng = (eastNum + westNum) / 2
+        const centerLat = (northNum + southNum) / 2
+        center.value = [centerLng, centerLat]
+    }
+}
+const polandBounds: LngLatBoundsLike = [
+    [14.0, 49], // Southwest
+    [24.5, 55.2], // Northeast
+]
+const zoom = 8
 
 // Transform SchoolShort objects to GeoJSON features
 const transformSchoolsToFeatures = (
@@ -160,6 +189,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         :map-style="style"
         :center="center"
         :zoom="zoom"
+        :max-bounds="polandBounds"
         height="100vh"
         @map:load="onMapLoaded">
         <MglNavigationControl />
