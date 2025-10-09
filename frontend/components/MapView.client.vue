@@ -2,7 +2,6 @@
 import maplibregl from "maplibre-gl"
 import type { LngLatBoundsLike } from "maplibre-gl"
 import triangleIconUrl from "~/assets/images/figures/triangle.png"
-import circleIconUrl from "~/assets/images/figures/circle.png"
 import diamondIconUrl from "~/assets/images/figures/diamond.png"
 import squareIconUrl from "~/assets/images/figures/square.png"
 import starIconUrl from "~/assets/images/figures/star.png"
@@ -17,13 +16,7 @@ const emit = defineEmits<{
     "point-clicked": [school: SzkolaPublic]
 }>()
 
-const iconUrls = [
-    triangleIconUrl,
-    circleIconUrl,
-    diamondIconUrl,
-    squareIconUrl,
-    starIconUrl,
-]
+const iconUrls = [triangleIconUrl, diamondIconUrl, squareIconUrl, starIconUrl]
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
 /**
@@ -33,6 +26,7 @@ const style = "https://tiles.openfreemap.org/styles/liberty"
 const route = useRoute()
 const center = ref<[number, number]>([19, 52]) // Default value
 const { east, west, south, north } = route.query
+let bounds: LngLatBoundsLike | undefined = undefined
 if (east && west && south && north) {
     const eastNum = Number(east)
     const westNum = Number(west)
@@ -46,10 +40,10 @@ if (east && west && south && north) {
         !isNaN(southNum) &&
         !isNaN(northNum)
     ) {
-        // Calculate center from bounding box coordinates
-        const centerLng = (eastNum + westNum) / 2
-        const centerLat = (northNum + southNum) / 2
-        center.value = [centerLng, centerLat]
+        bounds = [
+            [westNum, southNum],
+            [eastNum, northNum],
+        ]
     }
 }
 const polandBounds: LngLatBoundsLike = [
@@ -96,7 +90,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
     })
     const map = event.map
     let currentFeatureCoordinates: string | undefined = undefined
-    map.on("mousemove", "my-interactive-layer", (e) => {
+    map.on("mousemove", "unclustered-points", (e) => {
         const feature_collection = e.features?.[0]
         if (
             !feature_collection ||
@@ -134,7 +128,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         }
     })
 
-    map.on("mouseleave", "my-interactive-layer", () => {
+    map.on("mouseleave", "unclustered-points", () => {
         currentFeatureCoordinates = undefined
         map.getCanvas().style.cursor = ""
         popup.remove()
@@ -170,7 +164,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         }, 300) // Wait for 300ms of inactivity before fetching
     })
     // Add click event handler
-    map.on("click", "my-interactive-layer", async (e) => {
+    map.on("click", "unclustered-points", async (e) => {
         const feature_collection = e.features?.[0]
 
         const schoolFullDetails = await useApi<SzkolaPublic>(
@@ -190,6 +184,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
         :center="center"
         :zoom="zoom"
         :max-bounds="polandBounds"
+        :bounds="bounds"
         height="100vh"
         @map:load="onMapLoaded">
         <MglNavigationControl />
@@ -201,7 +196,6 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
             :url="iconUrl"
             :options="{ sdf: true }" />
 
-        <!-- Add your MglSource and MglLayer components here -->
         <MglGeoJsonSource
             source-id="my-data-source"
             :data="geoJsonSource"
@@ -211,19 +205,13 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                 sum: ['+', ['get', 'score']],
             }">
             <MglSymbolLayer
-                layer-id="my-interactive-layer"
+                layer-id="unclustered-points"
+                :filter="['!', ['has', 'point_count']]"
                 :paint="{
                     'icon-color': [
                         'interpolate',
                         ['linear'],
-                        [
-                            'case',
-                            ['has', 'cluster'],
-                            // If it's a cluster, calculate average: sum / point_count
-                            ['/', ['get', 'sum'], ['get', 'point_count']],
-                            // If it's not a cluster, use the regular score
-                            ['get', 'score'],
-                        ],
+                        ['get', 'score'],
                         0,
                         '#FF0000', // red at 0
                         50,
@@ -235,8 +223,6 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                 :layout="{
                     'icon-image': [
                         'case',
-                        ['has', 'cluster'],
-                        'star_sdf',
                         ['==', ['get', 'nazwa', ['get', 'typ']], 'Technikum'],
                         'triangle_sdf',
                         [
@@ -244,7 +230,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                             ['get', 'nazwa', ['get', 'typ']],
                             'Liceum ogólnokształcące',
                         ],
-                        'circle_sdf',
+                        'star_sdf',
                         [
                             '==',
                             ['get', 'nazwa', ['get', 'typ']],
@@ -257,6 +243,40 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                         'star_sdf',
                     ],
                     'icon-overlap': 'always',
+                }" />
+            <MglCircleLayer
+                layer-id="clusters"
+                :filter="['has', 'cluster']"
+                :paint="{
+                    'circle-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['/', ['get', 'sum'], ['get', 'point_count']],
+                        0,
+                        '#FF0000', // red at 0
+                        50,
+                        '#FFFF00', // yellow at 50
+                        100,
+                        '#00FF00', // green at 100
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        20,
+                        100,
+                        30,
+                        750,
+                        40,
+                    ],
+                }"
+                }); />
+            <MglSymbolLayer
+                layer-id="cluster-count"
+                :filter="['has', 'cluster']"
+                :layout="{
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['Noto Sans Regular'],
+                    'text-size': 12,
                 }" />
         </MglGeoJsonSource>
     </MglMap>
