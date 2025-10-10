@@ -5,9 +5,17 @@ import triangleIconUrl from "~/assets/images/figures/triangle.png"
 import diamondIconUrl from "~/assets/images/figures/diamond.png"
 import squareIconUrl from "~/assets/images/figures/square.png"
 import starIconUrl from "~/assets/images/figures/star.png"
+import hexagonIconUrl from "~/assets/images/figures/hexagon.png"
 import type { FeatureCollection, Feature, Point } from "geojson"
 import type { SzkolaPublicShort, SzkolaPublic } from "~/types/schools"
 
+const iconUrls = [
+    triangleIconUrl,
+    diamondIconUrl,
+    squareIconUrl,
+    starIconUrl,
+    hexagonIconUrl,
+]
 const props = defineProps<{
     schools: SzkolaPublicShort[] | null
 }>()
@@ -16,13 +24,8 @@ const emit = defineEmits<{
     "point-clicked": [school: SzkolaPublic]
 }>()
 
-const iconUrls = [triangleIconUrl, diamondIconUrl, squareIconUrl, starIconUrl]
-
 const style = "https://tiles.openfreemap.org/styles/liberty"
-/**
- * Calculate the center coordinates based on route query parameters (east, west, south, north)
- * Falls back to default Poland center [19, 52] when query parameters are not available
- */
+
 const route = useRoute()
 const center = ref<[number, number]>([19, 52]) // Default value
 const { east, west, south, north } = route.query
@@ -230,7 +233,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                             ['get', 'nazwa', ['get', 'typ']],
                             'Liceum ogólnokształcące',
                         ],
-                        'star_sdf',
+                        'diamond_sdf',
                         [
                             '==',
                             ['get', 'nazwa', ['get', 'typ']],
@@ -238,7 +241,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                         ],
                         'square_sdf',
                         ['==', ['get', 'nazwa', ['get', 'typ']], 'Przedszkole'],
-                        'diamond_sdf',
+                        'hexagon_sdf',
                         // Default fallback for any other school types
                         'star_sdf',
                     ],
