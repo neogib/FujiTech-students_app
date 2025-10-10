@@ -6,6 +6,7 @@ from sqlmodel import Session, select
 from app.core.database import get_session
 from app.models.bounding_box import BoundingBox
 from app.models.schools import Szkola, SzkolaPublic, SzkolaPublicShort
+from dependencies import parse_bbox
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
@@ -30,20 +31,20 @@ class FilterParams(BoundingBox):
 @router.get("/", response_model=list[SzkolaPublicShort])
 async def read_schools(
     session: SessionDep,
-    filter_query: Annotated[FilterParams, Query()],
+    bbox: Annotated[BoundingBox, Depends(parse_bbox)],
+    school_type: Annotated[int | None, Query(alias="type")] = None,
 ):
     # SQL query to filter schools within bounding box boundaries
     statement = select(Szkola).where(
-        (Szkola.geolokalizacja_latitude >= filter_query.south)
-        & (Szkola.geolokalizacja_latitude <= filter_query.north)
-        & (Szkola.geolokalizacja_longitude >= filter_query.west)
-        & (Szkola.geolokalizacja_longitude <= filter_query.east)
+        (Szkola.geolokalizacja_latitude >= bbox.min_lat)
+        & (Szkola.geolokalizacja_latitude <= bbox.max_lat)
+        & (Szkola.geolokalizacja_longitude >= bbox.min_lng)
+        & (Szkola.geolokalizacja_longitude <= bbox.max_lng)
     )
 
     # Add type filter if type parameter is provided
-    if filter_query.type is not None:
-        statement = statement.where(Szkola.typ_id == filter_query.type)
+    if school_type is not None:
+        statement = statement.where(Szkola.typ_id == school_type)
 
     schools = session.exec(statement).all()
-    print("Found schools:", len(schools))
     return schools
