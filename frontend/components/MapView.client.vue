@@ -26,29 +26,15 @@ const emit = defineEmits<{
 
 const style = "https://tiles.openfreemap.org/styles/liberty"
 
-const route = useRoute()
 const center = ref<[number, number]>([19, 52]) // Default value
-const { east, west, south, north } = route.query
-let bounds: LngLatBoundsLike | undefined = undefined
-if (east && west && south && north) {
-    const eastNum = Number(east)
-    const westNum = Number(west)
-    const southNum = Number(south)
-    const northNum = Number(north)
+const { bbox, updateBbox: updateQueryBboxParam } = useBoundingBox()
+const bounds: LngLatBoundsLike | undefined = !bbox
+    ? undefined
+    : [
+          [bbox.min_lng, bbox.min_lat],
+          [bbox.max_lng, bbox.max_lat],
+      ]
 
-    // Validate that all parameters are valid numbers
-    if (
-        !isNaN(eastNum) &&
-        !isNaN(westNum) &&
-        !isNaN(southNum) &&
-        !isNaN(northNum)
-    ) {
-        bounds = [
-            [westNum, southNum],
-            [eastNum, northNum],
-        ]
-    }
-}
 const polandBounds: LngLatBoundsLike = [
     [14.0, 49], // Southwest
     [24.5, 55.2], // Northeast
@@ -111,10 +97,15 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
             // Change the cursor style as a UI indicator.
             map.getCanvas().style.cursor = "pointer"
 
-            const coordinates = pointGeometry.coordinates.slice()
+            const coordinates = pointGeometry.coordinates.slice() as [
+                number,
+                number,
+            ]
             const feature_properties: SzkolaPublicShort =
                 feature_collection.properties as SzkolaPublicShort
+            // TODO: customize popup content
             const description = `${feature_properties.nazwa} ${feature_properties.numer_rspo} ${feature_properties.geolokalizacja_latitude} ${feature_properties.geolokalizacja_longitude}`
+
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
             // over the copy being pointed to.
@@ -124,10 +115,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
 
             // Populate the popup and set its coordinates
             // based on the feature found.
-            popup
-                .setLngLat(coordinates as [number, number])
-                .setHTML(description)
-                .addTo(map)
+            popup.setLngLat(coordinates).setHTML(description).addTo(map)
         }
     })
 
@@ -140,21 +128,6 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
     // --- DEBOUNCING LOGIC ---
     let debounceTimeout: NodeJS.Timeout | null = null
 
-    const updateQueryParams = async () => {
-        console.log("Map movement settled, updating route params...")
-        const bounds = map.getBounds()
-        await navigateTo({
-            query: {
-                ...route.query,
-                south: bounds.getSouth().toString(),
-                north: bounds.getNorth().toString(),
-                west: bounds.getWest().toString(),
-                east: bounds.getEast().toString(),
-            },
-            replace: true,
-        })
-    }
-
     map.on("moveend", () => {
         // Clear the previous timeout if it exists
         if (debounceTimeout) {
@@ -163,7 +136,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
 
         // Set a new timeout
         debounceTimeout = setTimeout(() => {
-            updateQueryParams()
+            updateQueryBboxParam(map.getBounds())
         }, 300) // Wait for 300ms of inactivity before fetching
     })
     // Add click event handler

@@ -251,11 +251,12 @@ export interface operations {
     read_schools_schools__get: {
         parameters: {
             query: {
-                north: number
-                south: number
-                west: number
-                east: number
                 type?: number | null
+                /**
+                 * @description Bounding box: min_lng,min_lat,max_lng,max_lat
+                 * @example 19.0,51.9,19.1,52.0
+                 */
+                bbox: string
             }
             header?: never
             path?: never

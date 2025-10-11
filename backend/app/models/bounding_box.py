@@ -35,4 +35,6 @@ class BoundingBox(BaseModel):
                 max_lat=float(coords[3]),
             )
         except (ValueError, IndexError) as e:
-            raise ValueError(f"Invalid bbox format: {e}") from e
+            raise ValueError(
+                f"Failed to convert bbox string to BoundingBox: {e}"
+            ) from e

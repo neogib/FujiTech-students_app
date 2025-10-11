@@ -14,18 +14,19 @@ const handleSearchSubmit = async (searchParams: {
     schoolType: number
     voivodeship: string
 }) => {
-    console.log("Search parameters received from form:", searchParams)
+    const voivodeshipData = voivodeshipNames[searchParams.voivodeship]
+    if (!voivodeshipData) {
+        console.error("Voivodeship not found:", searchParams.voivodeship)
+        return
+    }
 
-    // Here would be the redirect to map page in the future
-    console.log("Przekierowanie do strony mapy...")
-    const coords = voivodeshipNames[searchParams.voivodeship]?.coordinates
+    const coordinates = voivodeshipData.coordinates
+    const bbox = `${coordinates.min_lng},${coordinates.min_lat},${coordinates.max_lng},${coordinates.max_lat}`
+
     await navigateTo({
         path: "/map",
         query: {
-            south: coords?.south,
-            north: coords?.north,
-            west: coords?.west,
-            east: coords?.east,
+            bbox: bbox,
             type: searchParams.schoolType,
         },
     })
@@ -83,7 +84,9 @@ const handleSearchSubmit = async (searchParams: {
                             class="absolute top-0 right-0 bg-indigo-100 text-indigo-800 px-3 py-2 rounded-lg text-sm border border-indigo-200">
                             <p>
                                 Wybrano:
-                                {{ voivodeshipNames[selectedVoivodeship].name }}
+                                {{
+                                    voivodeshipNames[selectedVoivodeship]?.name
+                                }}
                             </p>
                         </div>
                     </div>
