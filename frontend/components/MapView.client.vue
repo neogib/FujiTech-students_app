@@ -104,7 +104,7 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
             const feature_properties: SzkolaPublicShort =
                 feature_collection.properties as SzkolaPublicShort
             // TODO: customize popup content
-            const description = `${feature_properties.nazwa} ${feature_properties.numer_rspo} ${feature_properties.geolokalizacja_latitude} ${feature_properties.geolokalizacja_longitude}`
+            const description = `${feature_properties.nazwa} ${feature_properties.numer_rspo} ${feature_properties.geolokalizacja_latitude} ${feature_properties.geolokalizacja_longitude} score: ${feature_properties.score}`
 
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
@@ -177,8 +177,9 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
             :data="geoJsonSource"
             :cluster="true"
             :cluster-properties="{
-                // Calculate sum of scores
                 sum: ['+', ['get', 'score']],
+                // Count points with non-zero scores
+                nonZeroCount: ['+', ['case', ['>', ['get', 'score'], 0], 1, 0]],
             }">
             <MglSymbolLayer
                 layer-id="unclustered-points"
@@ -227,7 +228,12 @@ const onMapLoaded = (event: { map: maplibregl.Map }) => {
                     'circle-color': [
                         'interpolate',
                         ['linear'],
-                        ['/', ['get', 'sum'], ['get', 'point_count']],
+                        [
+                            'case',
+                            ['>', ['get', 'nonZeroCount'], 0],
+                            ['/', ['get', 'sum'], ['get', 'nonZeroCount']],
+                            0,
+                        ],
                         0,
                         '#FF0000', // red at 0
                         50,
