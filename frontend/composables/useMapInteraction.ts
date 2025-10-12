@@ -1,20 +1,18 @@
 import type { Point } from "geojson"
 import type { LngLatBounds } from "maplibre-gl"
-import maplibregl from "maplibre-gl"
+import type maplibregl from "maplibre-gl"
 import type { MapMouseLayerEvent } from "~/types/map"
 import type { SzkolaPublic, SzkolaPublicShort } from "~/types/schools"
 
 export const useMapInteractions = (
     emit: (event: "point-clicked", school: SzkolaPublic) => void,
     updateQueryBboxParam: (bounds: LngLatBounds) => void,
+    displayPopup: Ref<boolean>,
+    popupCoordinates: Ref<[number, number] | undefined>,
 ) => {
-    const popup = new maplibregl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-    })
-
     let currentFeatureCoordinates: string | undefined = undefined
     let debounceTimeout: NodeJS.Timeout | null = null
+    const hoveredSchool: Ref<SzkolaPublicShort | null> = ref(null)
 
     const handleMouseMove = (map: maplibregl.Map, e: MapMouseLayerEvent) => {
         const feature_collection = e.features?.[0]
@@ -32,10 +30,9 @@ export const useMapInteractions = (
                 number,
                 number,
             ]
-            const feature_properties: SzkolaPublicShort =
+            // Update the hovered school data
+            hoveredSchool.value =
                 feature_collection.properties as SzkolaPublicShort
-            // TODO: customize popup content
-            const description = `${feature_properties.nazwa} ${feature_properties.numer_rspo} ${feature_properties.geolokalizacja_latitude} ${feature_properties.geolokalizacja_longitude} score: ${feature_properties.score}`
 
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
@@ -44,16 +41,18 @@ export const useMapInteractions = (
                 coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360
             }
 
-            // Populate the popup and set its coordinates
-            // based on the feature found.
-            popup.setLngLat(coordinates).setHTML(description).addTo(map)
+            // Use the MglPopup component instead of native popup
+            displayPopup.value = true
+            popupCoordinates.value = coordinates
         }
     }
 
     const handleMouseLeave = (map: maplibregl.Map) => {
         currentFeatureCoordinates = undefined
         map.getCanvas().style.cursor = ""
-        popup.remove()
+        displayPopup.value = false
+        popupCoordinates.value = undefined
+        hoveredSchool.value = null
     }
 
     const handleClick = async (e: MapMouseLayerEvent) => {
@@ -108,5 +107,5 @@ export const useMapInteractions = (
         map.on("moveend", () => handleMoveEnd(map))
     }
 
-    return { setupMapEventHandlers }
+    return { setupMapEventHandlers, hoveredSchool }
 }
