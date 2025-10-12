@@ -10,3 +10,11 @@ type schemas = components["schemas"]
 export type SzkolaPublicShort = schemas["SzkolaPublicShort"]
 export type SzkolaPublic = schemas["SzkolaPublic"]
 export type TypSzkolyPublic = schemas["TypSzkolyPublic"]
+
+export type SzkolaPublicShortFromGeoJsonFeatures = Omit<
+    SzkolaPublicShort,
+    "typ" | "status_publicznoprawny"
+> & {
+    typ: string
+    status_publicznoprawny: string
+}

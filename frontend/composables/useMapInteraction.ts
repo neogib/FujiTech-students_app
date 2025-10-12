@@ -2,7 +2,10 @@ import type { Point } from "geojson"
 import type { LngLatBounds } from "maplibre-gl"
 import type maplibregl from "maplibre-gl"
 import type { MapMouseLayerEvent } from "~/types/map"
-import type { SzkolaPublic, SzkolaPublicShort } from "~/types/schools"
+import type {
+    SzkolaPublic,
+    SzkolaPublicShortFromGeoJsonFeatures,
+} from "~/types/schools"
 
 export const useMapInteractions = (
     emit: (event: "point-clicked", school: SzkolaPublic) => void,
@@ -12,7 +15,8 @@ export const useMapInteractions = (
 ) => {
     let currentFeatureCoordinates: string | undefined = undefined
     let debounceTimeout: NodeJS.Timeout | null = null
-    const hoveredSchool: Ref<SzkolaPublicShort | null> = ref(null)
+    const hoveredSchool: Ref<SzkolaPublicShortFromGeoJsonFeatures | null> =
+        ref(null)
 
     const handleMouseMove = (map: maplibregl.Map, e: MapMouseLayerEvent) => {
         const feature_collection = e.features?.[0]
@@ -32,7 +36,7 @@ export const useMapInteractions = (
             ]
             // Update the hovered school data
             hoveredSchool.value =
-                feature_collection.properties as SzkolaPublicShort
+                feature_collection.properties as SzkolaPublicShortFromGeoJsonFeatures
 
             // Ensure that if the map is zoomed out such that multiple
             // copies of the feature are visible, the popup appears
