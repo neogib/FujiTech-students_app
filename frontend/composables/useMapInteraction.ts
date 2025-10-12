@@ -1,5 +1,7 @@
+import type { Point } from "geojson"
 import type { LngLatBounds } from "maplibre-gl"
 import maplibregl from "maplibre-gl"
+import type { MapMouseLayerEvent } from "~/types/map"
 import type { SzkolaPublic, SzkolaPublicShort } from "~/types/schools"
 
 export const useMapInteractions = (
@@ -14,22 +16,11 @@ export const useMapInteractions = (
     let currentFeatureCoordinates: string | undefined = undefined
     let debounceTimeout: NodeJS.Timeout | null = null
 
-    const handleMouseMove = (
-        map: maplibregl.Map,
-        e: maplibregl.MapMouseEvent & {
-            features?: maplibregl.MapGeoJSONFeature[]
-        } & object,
-    ) => {
+    const handleMouseMove = (map: maplibregl.Map, e: MapMouseLayerEvent) => {
         const feature_collection = e.features?.[0]
-        if (
-            !feature_collection ||
-            feature_collection.geometry.type !== "Point"
-        ) {
-            return
-        }
+        if (!feature_collection) return
 
-        // Type assertion since we've already checked that geometry.type is 'Point'
-        const pointGeometry = feature_collection.geometry
+        const pointGeometry = feature_collection.geometry as Point
         const featureCoordinates = pointGeometry.coordinates.toString()
         if (currentFeatureCoordinates !== featureCoordinates) {
             currentFeatureCoordinates = featureCoordinates
@@ -65,21 +56,34 @@ export const useMapInteractions = (
         popup.remove()
     }
 
-    const handleClick = async (
-        e: maplibregl.MapMouseEvent & {
-            features?: maplibregl.MapGeoJSONFeature[]
-        } & object,
-    ) => {
+    const handleClick = async (e: MapMouseLayerEvent) => {
         const feature_collection = e.features?.[0]
+        if (!feature_collection) return
 
         const schoolFullDetails = await useApi<SzkolaPublic>(
-            `/schools/${feature_collection?.properties.id}`,
+            `/schools/${feature_collection.properties.id}`,
         )
-        console.log("Clicked feature details:", schoolFullDetails.data)
 
         if (schoolFullDetails.data.value) {
             emit("point-clicked", schoolFullDetails.data.value)
         }
+    }
+
+    const handleClusterClick = async (
+        map: maplibregl.Map,
+        e: MapMouseLayerEvent,
+    ) => {
+        const features = map.queryRenderedFeatures(e.point, {
+            layers: ["clusters"],
+        })
+        const clusterId = features[0]?.properties.cluster_id
+        const zoom = await map
+            .getSource("schools-source")
+            ?.getClusterExpansionZoom(clusterId)
+        map.easeTo({
+            center: features[0].geometry.coordinates,
+            zoom,
+        })
     }
 
     const handleMoveEnd = (map: maplibregl.Map) => {
@@ -100,6 +104,7 @@ export const useMapInteractions = (
         )
         map.on("mouseleave", "unclustered-points", () => handleMouseLeave(map))
         map.on("click", "unclustered-points", handleClick)
+        map.on("click", "clusters", (e) => handleClusterClick(map, e))
         map.on("moveend", () => handleMoveEnd(map))
     }
 

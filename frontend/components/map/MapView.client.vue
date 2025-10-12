@@ -13,7 +13,7 @@ const emit = defineEmits<{
 
 const { bbox, updateBbox } = useBoundingBox()
 const { geoJsonSource } = useSchoolGeoJson(toRef(props, "schools"))
-const { setupMapEventHandlers } = useMapInteractions(emit, updateBbox())
+const { setupMapEventHandlers } = useMapInteractions(emit, updateBbox)
 
 const bounds: LngLatBoundsLike | undefined = !bbox
     ? undefined
