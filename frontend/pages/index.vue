@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { voivodeshipNames } from "~/data/voivodeships"
+import { VOIVODESHIP_NAMES } from "~/constants/voivodeships"
 
 const isMobileMenuOpen = ref(false)
 
@@ -14,7 +14,7 @@ const handleSearchSubmit = async (searchParams: {
     schoolType: number
     voivodeship: string
 }) => {
-    const voivodeshipData = voivodeshipNames[searchParams.voivodeship]
+    const voivodeshipData = VOIVODESHIP_NAMES[searchParams.voivodeship]
     if (!voivodeshipData) {
         console.error("Voivodeship not found:", searchParams.voivodeship)
         return
@@ -85,7 +85,7 @@ const handleSearchSubmit = async (searchParams: {
                             <p>
                                 Wybrano:
                                 {{
-                                    voivodeshipNames[selectedVoivodeship]?.name
+                                    VOIVODESHIP_NAMES[selectedVoivodeship]?.name
                                 }}
                             </p>
                         </div>

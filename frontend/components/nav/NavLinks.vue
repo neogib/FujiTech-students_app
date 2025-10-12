@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { navigationLinks } from "~/data/links"
+import { NAVIGATION_LINKS } from "~/constants/links"
 
 const props = defineProps({
     isDisplayBlock: Boolean,
@@ -8,7 +8,7 @@ const props = defineProps({
 
 <template>
     <NuxtLink
-        v-for="link in navigationLinks"
+        v-for="link in NAVIGATION_LINKS"
         :key="link.href"
         :to="link.href"
         :class="{ block: props.isDisplayBlock }"

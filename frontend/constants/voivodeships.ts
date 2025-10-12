@@ -2,29 +2,13 @@
 // Export a constant containing mappings of voivodeship keys to their respective names and bounding boxes
 // later on we can use nominatim API from openstreetmap to get this data
 
-/**
- * Bounding box coordinates in the format [min_lng, min_lat, max_lng, max_lat]
- */
-export interface LngLatBounds {
-    min_lng: number
-    min_lat: number
-    max_lng: number
-    max_lat: number
-}
-
-/**
- * Voivodeship data structure containing name and bounding box coordinates
- */
-export interface VoivodeshipData {
-    name: string
-    coordinates: LngLatBounds
-}
+import type { VoivodeshipData } from "~/types/voivodeships"
 
 /**
  * Mapping of voivodeship keys to their respective data including Polish names and bounding boxes
  * Bounding boxes are in bbox format (min_lng, min_lat, max_lng, max_lat) and are approximate extents
  */
-export const voivodeshipNames: Record<string, VoivodeshipData> = {
+export const VOIVODESHIP_NAMES: Record<string, VoivodeshipData> = {
     dolnoslaskie: {
         name: "Dolnośląskie",
         coordinates: {

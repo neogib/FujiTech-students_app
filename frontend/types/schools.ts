@@ -9,3 +9,4 @@ type schemas = components["schemas"]
 
 export type SzkolaPublicShort = schemas["SzkolaPublicShort"]
 export type SzkolaPublic = schemas["SzkolaPublic"]
+export type TypSzkolyPublic = schemas["TypSzkolyPublic"]

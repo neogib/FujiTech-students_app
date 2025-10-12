@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import { mainSchoolTypes } from "~/data/schoolTypes"
-import { voivodeshipNames } from "~/data/voivodeships"
-import type { SchoolType } from "~/types/schools"
+import { mainSchoolTypes } from "~/constants/schoolTypes"
+import { VOIVODESHIP_NAMES } from "~/constants/voivodeships"
+import type { TypSzkolyPublic } from "~/types/schools"
 
 const props = defineProps<{
     readonly selectedVoivodeship: string
@@ -16,20 +16,20 @@ const emit = defineEmits<{
 const selectedSchoolType = ref<number>()
 
 const schoolTypePromises = mainSchoolTypes.map((mainType) => {
-    return useApi<SchoolType>("/school_types/", {
+    return useApi<TypSzkolyPublic>("/school_types/", {
         query: { name: mainType },
     })
 })
 // using await here so that the server stops and waits for all data to be fetched
 const schoolTypeResults = await Promise.all(schoolTypePromises)
 
-const schoolTypesToDisplay: SchoolType[] = schoolTypeResults
+const schoolTypesToDisplay: TypSzkolyPublic[] = schoolTypeResults
     .map((result) => result.data.value) // Extract the 'data' from each result
-    .filter((schoolType): schoolType is SchoolType => !!schoolType)
+    .filter((schoolType): schoolType is TypSzkolyPublic => !!schoolType)
 
 const voivodeshipName = computed(() => {
     return props.selectedVoivodeship
-        ? voivodeshipNames[props.selectedVoivodeship].name
+        ? VOIVODESHIP_NAMES[props.selectedVoivodeship]?.name
         : ""
 })
 
