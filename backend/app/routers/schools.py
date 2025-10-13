@@ -5,8 +5,18 @@ from sqlmodel import Session, select
 
 from app.core.database import get_session
 from app.models.bounding_box import BoundingBox
-from app.models.schools import Szkola, SzkolaPublic, SzkolaPublicShort
+from app.models.exam_results import (
+    WynikE8PublicWithPrzedmiot,  # noqa: F401
+    WynikEMPublicWithPrzedmiot,  # noqa: F401
+)
+from app.models.schools import (
+    Szkola,
+    SzkolaPublicShort,
+    SzkolaPublicWithRelations,
+)
 from dependencies import parse_bbox
+
+_ = SzkolaPublicWithRelations.model_rebuild()
 
 SessionDep = Annotated[Session, Depends(get_session)]
 
@@ -16,7 +26,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{school_id}", response_model=SzkolaPublic)
+@router.get("/{school_id}", response_model=SzkolaPublicWithRelations)
 async def read_school(school_id: int, session: SessionDep) -> Szkola:
     school = session.get(Szkola, school_id)
     if not school:
