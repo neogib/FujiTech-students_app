@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import type { LngLatBoundsLike } from "maplibre-gl"
 import { MAP_CONFIG, ICON_URLS } from "~/constants/mapConfig"
-import type { SzkolaPublic, SzkolaPublicShort } from "~/types/schools"
+import type {
+    SzkolaPublicWithRelations,
+    SzkolaPublicShort,
+} from "~/types/schools"
 
 const props = defineProps<{
     schools: SzkolaPublicShort[] | null
 }>()
 
 const emit = defineEmits<{
-    "point-clicked": [school: SzkolaPublic]
+    "point-clicked": [school: SzkolaPublicWithRelations]
 }>()
 
 const { geoJsonSource } = useSchoolGeoJson(toRef(props, "schools"))

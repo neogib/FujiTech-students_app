@@ -8,7 +8,7 @@ import type { components } from "./api"
 type schemas = components["schemas"]
 
 export type SzkolaPublicShort = schemas["SzkolaPublicShort"]
-export type SzkolaPublic = schemas["SzkolaPublic"]
+export type SzkolaPublicWithRelations = schemas["SzkolaPublicWithRelations"]
 export type TypSzkolyPublic = schemas["TypSzkolyPublic"]
 
 export type SzkolaPublicShortFromGeoJsonFeatures = Omit<
@@ -18,3 +18,6 @@ export type SzkolaPublicShortFromGeoJsonFeatures = Omit<
     typ: string
     status_publicznoprawny: string
 }
+
+export type WynikE8PublicWithPrzedmiot = schemas["WynikE8PublicWithPrzedmiot"]
+export type WynikEMPublicWithPrzedmiot = schemas["WynikEMPublicWithPrzedmiot"]

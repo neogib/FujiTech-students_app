@@ -3,12 +3,12 @@ import type { LngLatBounds } from "maplibre-gl"
 import type maplibregl from "maplibre-gl"
 import type { MapMouseLayerEvent } from "~/types/map"
 import type {
-    SzkolaPublic,
+    SzkolaPublicWithRelations,
     SzkolaPublicShortFromGeoJsonFeatures,
 } from "~/types/schools"
 
 export const useMapInteractions = (
-    emit: (event: "point-clicked", school: SzkolaPublic) => void,
+    emit: (event: "point-clicked", school: SzkolaPublicWithRelations) => void,
     updateQueryBboxParam: (bounds: LngLatBounds) => void,
     displayPopup: Ref<boolean>,
     popupCoordinates: Ref<[number, number] | undefined>,
@@ -63,7 +63,7 @@ export const useMapInteractions = (
         const feature_collection = e.features?.[0]
         if (!feature_collection) return
 
-        const schoolFullDetails = await useApi<SzkolaPublic>(
+        const schoolFullDetails = await useApi<SzkolaPublicWithRelations>(
             `/schools/${feature_collection.properties.id}`,
         )
 

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { SzkolaPublic, SzkolaPublicShort } from "~/types/schools"
+import type {
+    SzkolaPublicWithRelations,
+    SzkolaPublicShort,
+} from "~/types/schools"
 
 const route = useRoute()
 
@@ -16,9 +19,9 @@ const { data, status } = useApi<SzkolaPublicShort[]>("/schools", {
 
 // Reactive state for sidebar
 const isSidebarOpen = ref(false)
-const selectedSchool = ref<SzkolaPublic | null>(null)
+const selectedSchool = ref<SzkolaPublicWithRelations | null>(null)
 
-const handlePointClick = (school: SzkolaPublic) => {
+const handlePointClick = (school: SzkolaPublicWithRelations) => {
     selectedSchool.value = school
     isSidebarOpen.value = true
 }
