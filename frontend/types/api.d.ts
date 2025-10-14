@@ -113,10 +113,49 @@ export interface paths {
 export type webhooks = Record<string, never>
 export interface components {
     schemas: {
+        /** EtapEdukacjiPublic */
+        EtapEdukacjiPublic: {
+            /** Nazwa */
+            nazwa: string
+            /** Id */
+            id: number
+        }
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][]
+        }
+        /** KategoriaUczniowPublic */
+        KategoriaUczniowPublic: {
+            /** Nazwa */
+            nazwa: string
+            /** Id */
+            id: number
+        }
+        /** KsztalcenieZawodowePublic */
+        KsztalcenieZawodowePublic: {
+            /** Nazwa */
+            nazwa: string
+            /** Id */
+            id: number
+        }
+        /** MiejscowoscPublic */
+        MiejscowoscPublic: {
+            /** Nazwa */
+            nazwa: string
+            /** Teryt */
+            teryt: string
+            /** Gmina Id */
+            gmina_id?: number | null
+            /** Id */
+            id: number
+        }
+        /** PrzedmiotPublic */
+        PrzedmiotPublic: {
+            /** Nazwa */
+            nazwa: string
+            /** Id */
+            id: number
         }
         /** StatusPublicznoprawnyPublic */
         StatusPublicznoprawnyPublic: {
@@ -125,8 +164,25 @@ export interface components {
             /** Id */
             id: number
         }
-        /** SzkolaPublic */
-        SzkolaPublic: {
+        /** SzkolaPublicShort */
+        SzkolaPublicShort: {
+            /** Numer Rspo */
+            numer_rspo: number
+            /** Nazwa */
+            nazwa: string
+            /** Id */
+            id: number
+            /** Geolokalizacja Latitude */
+            geolokalizacja_latitude: number
+            /** Geolokalizacja Longitude */
+            geolokalizacja_longitude: number
+            /** Score */
+            score: number
+            typ: components["schemas"]["TypSzkolyPublic"]
+            status_publicznoprawny: components["schemas"]["StatusPublicznoprawnyPublic"]
+        }
+        /** SzkolaPublicWithRelations */
+        SzkolaPublicWithRelations: {
             /** Numer Rspo */
             numer_rspo: number
             /** Nazwa */
@@ -174,28 +230,36 @@ export interface components {
             ulica_id?: number | null
             /** Id */
             id: number
-        }
-        /** SzkolaPublicShort */
-        SzkolaPublicShort: {
-            /** Numer Rspo */
-            numer_rspo: number
-            /** Nazwa */
-            nazwa: string
-            /** Id */
-            id: number
-            /** Geolokalizacja Latitude */
-            geolokalizacja_latitude: number
-            /** Geolokalizacja Longitude */
-            geolokalizacja_longitude: number
-            /** Score */
-            score: number
+            /**
+             * Etapy Edukacji
+             * @default []
+             */
+            etapy_edukacji: components["schemas"]["EtapEdukacjiPublic"][]
             typ: components["schemas"]["TypSzkolyPublic"]
             status_publicznoprawny: components["schemas"]["StatusPublicznoprawnyPublic"]
+            kategoria_uczniow: components["schemas"]["KategoriaUczniowPublic"]
+            miejscowosc: components["schemas"]["MiejscowoscPublic"]
+            ulica: components["schemas"]["UlicaPublic"]
+            /** Ksztalcenie Zawodowe */
+            ksztalcenie_zawodowe: components["schemas"]["KsztalcenieZawodowePublic"][]
+            /** Wyniki E8 */
+            wyniki_e8: components["schemas"]["WynikE8PublicWithPrzedmiot"][]
+            /** Wyniki Em */
+            wyniki_em: components["schemas"]["WynikEMPublicWithPrzedmiot"][]
         }
         /** TypSzkolyPublic */
         TypSzkolyPublic: {
             /** Nazwa */
             nazwa: string
+            /** Id */
+            id: number
+        }
+        /** UlicaPublic */
+        UlicaPublic: {
+            /** Nazwa */
+            nazwa: string
+            /** Teryt */
+            teryt: string
             /** Id */
             id: number
         }
@@ -207,6 +271,46 @@ export interface components {
             msg: string
             /** Error Type */
             type: string
+        }
+        /** WynikE8PublicWithPrzedmiot */
+        WynikE8PublicWithPrzedmiot: {
+            /** Liczba Zdajacych */
+            liczba_zdajacych: number | null
+            /** Mediana */
+            mediana?: number | null
+            /** Wynik Sredni */
+            wynik_sredni: number | null
+            /** Szkola Id */
+            szkola_id: number
+            /** Przedmiot Id */
+            przedmiot_id: number
+            /** Rok */
+            rok: number
+            /** Id */
+            id: number
+            przedmiot: components["schemas"]["PrzedmiotPublic"]
+        }
+        /** WynikEMPublicWithPrzedmiot */
+        WynikEMPublicWithPrzedmiot: {
+            /** Liczba Zdajacych */
+            liczba_zdajacych: number | null
+            /** Mediana */
+            mediana?: number | null
+            /** Sredni Wynik */
+            sredni_wynik: number | null
+            /** Zdawalnosc */
+            zdawalnosc?: number | null
+            /** Liczba Laureatow Finalistow */
+            liczba_laureatow_finalistow?: number | null
+            /** Szkola Id */
+            szkola_id: number
+            /** Przedmiot Id */
+            przedmiot_id: number
+            /** Rok */
+            rok: number
+            /** Id */
+            id: number
+            przedmiot: components["schemas"]["PrzedmiotPublic"]
         }
     }
     responses: never
@@ -234,7 +338,7 @@ export interface operations {
                     [name: string]: unknown
                 }
                 content: {
-                    "application/json": components["schemas"]["SzkolaPublic"]
+                    "application/json": components["schemas"]["SzkolaPublicWithRelations"]
                 }
             }
             /** @description Validation Error */
