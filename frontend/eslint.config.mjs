@@ -17,4 +17,11 @@ export default withNuxt({
     rules: {
         "no-else-return": 2,
     },
-}).append(eslintConfigPrettier)
+})
+    .append({
+        files: ["**/app/pages/**/*.vue"],
+        rules: {
+            "vue/multi-word-component-names": "off",
+        },
+    })
+    .append(eslintConfigPrettier)
